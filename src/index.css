@@ -18,6 +18,25 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.glass-card {
+  background: #EAE4E5;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-underline {
+  width: 24px;
+  transition: width 0.3s ease;
+}
+
+.glass-card:hover .glass-underline {
+  width: 50px;
+}
+
 @keyframes marquee {
   0% {
     transform: translateX(0%);

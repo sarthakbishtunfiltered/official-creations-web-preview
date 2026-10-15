@@ -3,6 +3,7 @@ import { Phone } from "lucide-react";
 import { HowItWorks } from "./components/HowItWorks";
 import { BuiltDifferent } from "./components/BuiltDifferent";
 import { SupportedNiches } from "./components/SupportedNiches";
+import { LiveDemo } from "./components/LiveDemo";
 
 function App() {
   return (
@@ -111,6 +112,9 @@ function App() {
 
       {/* Section 3: Supported Niches */}
       <SupportedNiches />
+
+      {/* Section 4: Live Demo */}
+      <LiveDemo />
     </div>
   );
 }
