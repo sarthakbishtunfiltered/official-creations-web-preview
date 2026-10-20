@@ -1,57 +1,30 @@
 import { motion } from "framer-motion";
-import {
-  Stethoscope,
-  Armchair,
-  Camera,
-  Scissors,
-  Dumbbell,
-  Building2,
-  GraduationCap,
-  ChefHat,
-  Scale,
-  Home,
-  Sparkles,
-  Layers,
-  Smartphone,
-  Palette,
-} from "lucide-react";
+import { Sparkles, Phone, Smartphone, Palette } from "lucide-react";
+import { niches } from "../data/niches";
 
-const niches = [
-  { label: "Dentists", icon: Stethoscope },
-  { label: "Interior Designers", icon: Armchair },
-  { label: "Wedding Photographers", icon: Camera },
-  { label: "Salons", icon: Scissors },
-  { label: "Yoga & Fitness", icon: Dumbbell },
-  { label: "Architects", icon: Building2 },
-  { label: "Coaching Institutes", icon: GraduationCap },
-  { label: "Home Bakers", icon: ChefHat },
-  { label: "CA Firms & Legal Practices", icon: Scale },
-  { label: "Real Estate", icon: Home },
-];
-
-// Quadruple for seamless infinite loop
+// Four copies so the row loops seamlessly (the animation moves exactly half the track).
 const marqueeItems = [...niches, ...niches, ...niches, ...niches];
 
 const featureCards = [
   {
     icon: Sparkles,
-    title: "Industry-Specific",
-    desc: "Templates crafted for your niche and target audience.",
+    title: "Industry-specific",
+    desc: "Templates made for your niche and its customers.",
   },
   {
-    icon: Layers,
-    title: "Conversion-Focused",
-    desc: "Designed to attract, engage, and convert visitors.",
+    icon: Phone,
+    title: "Built for enquiries",
+    desc: "Call and WhatsApp buttons are part of every site.",
   },
   {
     icon: Smartphone,
-    title: "Fully Responsive",
-    desc: "Flawless presentation across every device and screen size.",
+    title: "Fully responsive",
+    desc: "Looks right on phones, tablets and desktops.",
   },
   {
     icon: Palette,
-    title: "Easy Customization",
-    desc: "Request changes anytime and we'll refine it for you.",
+    title: "Easy changes",
+    desc: "Tell us what to change and we'll update your site.",
   },
 ];
 
@@ -80,8 +53,8 @@ export function SupportedNiches() {
               </span>
             </h2>
             <p className="mt-4 text-[17px] sm:text-[19px] text-[#6B6566] leading-[1.5] font-medium max-w-2xl">
-              Select your industry and get an instantly personalized website
-              preview — built to represent your business perfectly.
+              Choose the industry and get a personalized website preview in
+              seconds.
             </p>
           </motion.div>
 
@@ -92,14 +65,22 @@ export function SupportedNiches() {
             transition={{ duration: 0.5 }}
             className="flex items-center gap-2 text-[13px] font-semibold text-[#111111] tracking-wide shrink-0 pb-1"
           >
-            <span>✦</span>
-            <span>10+ Niches • Updated regularly</span>
+            <span aria-hidden="true">✦</span>
+            <span>{niches.length} niches • Simple &amp; Premium designs</span>
           </motion.div>
         </div>
       </div>
 
+      {/* Screen readers get the list once; the scrolling copy below is decoration */}
+      <ul className="sr-only">
+        {niches.map((niche) => (
+          <li key={niche.id}>{niche.label}</li>
+        ))}
+      </ul>
+
       {/* Marquee — full bleed, edge-faded */}
       <div
+        aria-hidden="true"
         className="mt-14 mb-14 w-full overflow-hidden"
         style={{
           maskImage:
@@ -108,24 +89,16 @@ export function SupportedNiches() {
             "linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%)",
         }}
       >
-        <div className="animate-marquee flex items-center py-3" style={{ gap: "96px" }}>
+        <div className="animate-marquee flex items-center py-3">
           {marqueeItems.map((niche, idx) => {
             const Icon = niche.icon;
             return (
               <div
-                key={`${niche.label}-${idx}`}
-                className="group flex items-center gap-3.5 shrink-0 cursor-default select-none"
+                key={`${niche.id}-${idx}`}
+                className="flex items-center gap-3.5 shrink-0 cursor-default select-none pr-24"
               >
-                <Icon
-                  className="w-[22px] h-[22px] text-[#111111] stroke-[1.6] flex-shrink-0
-                             transition-transform duration-400 ease-out group-hover:scale-[1.08]"
-                />
-                <span
-                  className="text-[17px] sm:text-[19px] font-medium text-[#111111]
-                             tracking-[-0.01em] whitespace-nowrap
-                             transition-all duration-300 ease-out
-                             group-hover:font-semibold"
-                >
+                <Icon className="w-[22px] h-[22px] text-[#111111] stroke-[1.6] shrink-0" />
+                <span className="text-[17px] sm:text-[19px] font-medium text-[#111111] tracking-[-0.01em] whitespace-nowrap">
                   {niche.label}
                 </span>
               </div>
@@ -148,7 +121,6 @@ export function SupportedNiches() {
               key={title}
               className="group flex flex-col gap-5 p-6 sm:p-7 rounded-2xl
                          border border-[#D5CFD0] bg-[#F0EBEB]/60
-                         cursor-pointer
                          transition-all duration-300 ease-in-out
                          hover:-translate-y-[5px]
                          hover:shadow-[0_12px_32px_rgba(0,0,0,0.07)]

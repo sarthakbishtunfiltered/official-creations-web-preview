@@ -1,51 +1,51 @@
 import { motion } from "framer-motion";
-import { Layers, User, Send, Shield, Zap, Target, CheckCircle2, Sparkles } from "lucide-react";
+import { Layers, User, Send, Shield, Zap, Target, Phone, Sparkles } from "lucide-react";
+
+const processItems = [
+  {
+    icon: Layers,
+    title: "Niche-specific templates",
+    desc: "Every niche has its own layout, in a Simple and a Premium design.",
+    badge: "Simple & Premium",
+  },
+  {
+    icon: User,
+    title: "Smart personalization",
+    desc: "Your business details fill the template instantly.",
+    badge: "Filled from your details",
+  },
+  {
+    icon: Send,
+    title: "Preview before you buy",
+    desc: "Review the finished site first. Approve it and we get it ready to go live.",
+    badge: "Preview first",
+  },
+];
+
+const valueCards = [
+  {
+    icon: Shield,
+    title: "Made for your industry",
+    desc: "Layouts built around what your customers look for.",
+  },
+  {
+    icon: Zap,
+    title: "No waiting",
+    desc: "See your website in seconds, not days.",
+  },
+  {
+    icon: Target,
+    title: "No guesswork",
+    desc: "The preview shows the site as it will look.",
+  },
+  {
+    icon: Phone,
+    title: "Ready for enquiries",
+    desc: "Call and WhatsApp buttons use the number you give us.",
+  },
+];
 
 export function BuiltDifferent() {
-  const processItems = [
-    {
-      icon: Layers,
-      title: "Premium Templates",
-      desc: "Every niche has a high-converting, professionally designed template.",
-      badge: "Pre-built & polished",
-    },
-    {
-      icon: User,
-      title: "Smart Personalization",
-      desc: "Your business info replaces placeholders instantly and perfectly.",
-      badge: "Real-time content swap",
-    },
-    {
-      icon: Send,
-      title: "Instant Delivery",
-      desc: "Preview your website and go live with confidence.",
-      badge: "Ready for deployment",
-    },
-  ];
-
-  const valueCards = [
-    {
-      icon: Shield,
-      title: "No generic designs",
-      desc: "Every template is built for its industry and audience.",
-    },
-    {
-      icon: Zap,
-      title: "No waiting, no back & forth",
-      desc: "See the exact result instantly — not days later.",
-    },
-    {
-      icon: Target,
-      title: "No guesswork",
-      desc: "What you preview is exactly what you'll get.",
-    },
-    {
-      icon: CheckCircle2,
-      title: "Just perfect results",
-      desc: "Designed to impress, built to convert.",
-    },
-  ];
-
   return (
     <section className="w-full max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 py-16 sm:py-20 lg:py-24 border-t border-[#D5CFD0]/50">
       {/* Top Section: Split Title/Text & Dark Process Card */}
@@ -71,13 +71,11 @@ export function BuiltDifferent() {
 
           <div className="mt-6 space-y-4 text-[16px] sm:text-[17px] text-[#6B6566] leading-[1.55] font-medium">
             <p>
-              We don't build websites from scratch. We have a library of
-              premium templates — built for results, not just looks.
+              Each website starts from a template designed for one industry.
+              When you share your details, we load the right one and fill it
+              with your business name, contact info and photos.
             </p>
-            <p>
-              When you share your details, we instantly load the perfect match
-              and personalize it in real time.
-            </p>
+            <p>You review the preview first. If you like it, we take it live.</p>
           </div>
         </motion.div>
 
@@ -145,7 +143,7 @@ export function BuiltDifferent() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: idx * 0.1 }}
-              className="bg-[#F4EFEF]/80 backdrop-blur-sm border border-[#D5CFD0] rounded-2xl p-6 sm:p-7 flex flex-col justify-between hover:bg-white transition-all duration-500 ease-in-out hover:-translate-y-[6px] hover:shadow-[0_16px_32px_rgba(0,0,0,0.08)] hover:border-[#111111]/30 group cursor-pointer"
+              className="bg-[#F4EFEF]/80 backdrop-blur-sm border border-[#D5CFD0] rounded-2xl p-6 sm:p-7 flex flex-col justify-between hover:bg-white transition-all duration-500 ease-in-out hover:-translate-y-[6px] hover:shadow-[0_16px_32px_rgba(0,0,0,0.08)] hover:border-[#111111]/30 group"
             >
               <div>
                 <div className="w-12 h-12 rounded-full border border-[#BCB6B7] bg-white/50 flex items-center justify-center text-[#111111] mb-6 group-hover:scale-[1.05] group-hover:bg-white transition-all duration-500 ease-in-out">
@@ -180,15 +178,14 @@ export function BuiltDifferent() {
             <Sparkles className="w-5 h-5 stroke-[2]" />
           </div>
           <span className="font-bold text-[#111111] text-[15px] sm:text-[16px]">
-            Real templates. Real results. Real fast.
+            Preview first. Decide later.
           </span>
         </div>
 
         <div className="hidden sm:block w-[1px] h-6 bg-[#D5CFD0]" />
 
         <p className="text-[14px] text-[#6B6566] font-medium leading-relaxed">
-          Our system is built to save you time and get you the perfect website
-          preview in seconds.
+          See the finished website before you commit to anything.
         </p>
       </motion.div>
     </section>

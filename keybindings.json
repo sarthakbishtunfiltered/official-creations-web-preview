@@ -1,0 +1,25 @@
+// Add these entries inside your existing keybindings.json array.
+// Open it with: Ctrl+Shift+P -> "Preferences: Open Keyboard Shortcuts (JSON)"
+[
+  {
+    // Ctrl+Alt+J: open a NEW terminal and launch jcode in it
+    "key": "ctrl+alt+j",
+    "command": "runCommands",
+    "args": {
+      "commands": [
+        "workbench.action.terminal.new",
+        {
+          "command": "workbench.action.terminal.sendSequence",
+          "args": { "text": "jcode\u000D" }
+        }
+      ]
+    }
+  },
+  {
+    // Ctrl+Alt+Shift+J: run jcode in the terminal you already have focused
+    "key": "ctrl+alt+shift+j",
+    "command": "workbench.action.terminal.sendSequence",
+    "args": { "text": "jcode\u000D" },
+    "when": "terminalFocus"
+  }
+]
