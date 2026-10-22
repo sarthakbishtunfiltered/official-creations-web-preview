@@ -6,11 +6,13 @@ import { coreFields, getGroups, nicheOwnedKeys } from "../data/fields";
 import type { Group } from "../data/fields";
 import { designs, getNiche } from "../data/niches";
 import type { Design } from "../data/niches";
+import { previewUrl, savePreview } from "../lib/previewStore";
 import { buildSiteData, countFilled, validate } from "../lib/siteData";
 import type { FieldValue, FormState, SiteData } from "../lib/siteData";
 import { FieldControl, labelClass } from "./form/Field";
 import { NicheSelect } from "./form/NicheSelect";
 import { PreviewPanel } from "./PreviewPanel";
+import { templates } from "../templates/registry";
 
 const emptyForm: FormState = { niche: "", design: "simple", values: {} };
 
@@ -38,6 +40,7 @@ export function LiveDemo() {
   const [form, setForm] = useState<FormState>(emptyForm);
   const [showErrors, setShowErrors] = useState(false);
   const [result, setResult] = useState<SiteData | null>(null);
+  const [previewId, setPreviewId] = useState<string | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
 
   const errors = useMemo(() => validate(form), [form]);
@@ -78,13 +81,22 @@ export function LiveDemo() {
       focusFirstInvalid(errors);
       return;
     }
-    setResult(buildSiteData(form));
+    const data = buildSiteData(form);
+    // Open the finished site in its own tab. This runs inside the click, so pop-up blockers allow it.
+    let id: string | null = null;
+    if (templates[data.niche]?.[data.design]) {
+      id = savePreview(data);
+      if (id) window.open(previewUrl(id), "_blank");
+    }
+    setPreviewId(id);
+    setResult(data);
   }
 
   function clearAll() {
     setForm(emptyForm);
     setShowErrors(false);
     setResult(null);
+    setPreviewId(null);
   }
 
   function renderGroup(group: Group) {
@@ -287,7 +299,7 @@ export function LiveDemo() {
         className="mx-auto mt-12 w-full max-w-7xl px-6 pb-16 sm:px-12 sm:pb-20 lg:px-16 lg:pb-24"
         aria-live="polite"
       >
-        <PreviewPanel data={result} />
+        <PreviewPanel data={result} previewId={previewId} />
       </div>
     </section>
   );

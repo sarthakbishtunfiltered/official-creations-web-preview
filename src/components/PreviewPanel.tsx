@@ -1,5 +1,6 @@
-import { Monitor, Smartphone, Zap } from "lucide-react";
+import { ArrowRight, Monitor, Smartphone, Zap } from "lucide-react";
 import { designs } from "../data/niches";
+import { previewUrl } from "../lib/previewStore";
 import type { SiteData } from "../lib/siteData";
 import { templates } from "../templates/registry";
 
@@ -11,9 +12,11 @@ const emptyPoints = [
 
 interface PreviewPanelProps {
   data: SiteData | null;
+  // Set when the preview was stored and opened in its own tab; null if storing failed.
+  previewId: string | null;
 }
 
-export function PreviewPanel({ data }: PreviewPanelProps) {
+export function PreviewPanel({ data, previewId }: PreviewPanelProps) {
   if (!data) {
     return (
       <div className="flex flex-col gap-8 p-7 sm:p-8">
@@ -72,7 +75,27 @@ export function PreviewPanel({ data }: PreviewPanelProps) {
         </h3>
       </div>
 
-      {Template ? (
+      {Template && previewId ? (
+        <div className="flex flex-col items-start gap-4 rounded-2xl border border-[#D5CFD0] bg-white/70 p-5 sm:p-6">
+          <div>
+            <p className="text-[15px] font-bold text-[#111111]">
+              {data.businessName} · {data.nicheLabel} · {designLabel}
+            </p>
+            <p className="mt-1 text-[13px] font-medium leading-relaxed text-[#6B6566]">
+              The preview opens in its own tab. If nothing opened, your browser blocked the pop-up, so use the button.
+            </p>
+          </div>
+          <a
+            href={previewUrl(previewId)}
+            target="_blank"
+            rel="noopener"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#111111] px-5 py-3 text-[14px] font-semibold text-white transition-colors duration-200 hover:bg-black"
+          >
+            Open preview in a new tab
+            <ArrowRight className="h-4 w-4" />
+          </a>
+        </div>
+      ) : Template ? (
         <div className="overflow-hidden rounded-2xl border border-[#D5CFD0] bg-white">
           <div className="bg-[#111111] px-4 py-2 text-center text-[12px] font-semibold text-white">
             Preview by Official Creations
