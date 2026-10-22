@@ -199,8 +199,8 @@ export function InteriorSimple({ data }: { data: SiteData }) {
   }
 
   return (
-    <div className={`bg-[#E8DFD3] p-2.5 font-sans sm:p-5 ${fullPage ? "pb-24 md:pb-5" : ""}`} style={{ color: INK }}>
-      <div className="overflow-hidden rounded-[20px] bg-white">
+    <div className={`bg-white font-sans ${fullPage ? "pb-20 md:pb-0" : ""}`} style={{ color: INK }}>
+      <div className="overflow-hidden bg-white">
         {banner && (
           <div className="px-4 py-2 text-center text-[12px] font-semibold" style={{ backgroundColor: brand, color: onBrand }}>
             {banner}
@@ -208,7 +208,7 @@ export function InteriorSimple({ data }: { data: SiteData }) {
         )}
 
         {/* Navigation */}
-        <header className="flex items-center justify-between gap-3 px-4 py-4 sm:px-8">
+        <header className="mx-auto flex w-full max-w-[1400px] items-center justify-between gap-3 px-4 py-4 sm:px-8">
           <div className="flex min-w-0 items-center gap-3">
             {data.logo ? (
               <img src={data.logo} alt={`${data.businessName} logo`} className="h-9 w-auto max-w-[140px] object-contain" />
@@ -257,7 +257,7 @@ export function InteriorSimple({ data }: { data: SiteData }) {
           </nav>
         )}
 
-        <main className="flex flex-col gap-14 px-4 pb-4 sm:gap-20 sm:px-8 sm:pb-8">
+        <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-14 px-4 pb-10 sm:gap-20 sm:px-8 sm:pb-16">
           {/* Hero */}
           <section className="relative min-h-[460px] overflow-hidden rounded-[22px] sm:min-h-[560px]">
             <div ref={heroImage} className="absolute inset-0 will-change-transform">
@@ -565,7 +565,8 @@ export function InteriorSimple({ data }: { data: SiteData }) {
         </main>
 
         {/* Contact */}
-        <footer id="ts-contact" className="bg-[#111111] px-5 py-12 text-white sm:px-10 sm:py-16">
+        <footer id="ts-contact" className="bg-[#111111] py-12 text-white sm:py-16">
+          <div className="mx-auto w-full max-w-[1400px] px-5 sm:px-8">
           <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-14">
             <Reveal className="flex flex-col gap-5">
               <h2 className="text-[34px] font-semibold leading-[1.08] tracking-[-0.03em] sm:text-[48px]">
@@ -651,6 +652,7 @@ export function InteriorSimple({ data }: { data: SiteData }) {
             <span className="break-words text-[36px] font-semibold leading-none tracking-[-0.04em] sm:text-right sm:text-[64px]">
               {data.businessName}
             </span>
+          </div>
           </div>
         </footer>
       </div>
