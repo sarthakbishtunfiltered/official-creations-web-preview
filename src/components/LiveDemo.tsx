@@ -6,7 +6,7 @@ import { coreFields, getGroups, nicheOwnedKeys } from "../data/fields";
 import type { Group } from "../data/fields";
 import { designs, getNiche } from "../data/niches";
 import type { Design } from "../data/niches";
-import { previewUrl, savePreview } from "../lib/previewStore";
+import { editIdFromLocation, loadPreviewForm, previewUrl, savePreview } from "../lib/previewStore";
 import { buildSiteData, countFilled, validate } from "../lib/siteData";
 import type { FieldValue, FormState, SiteData } from "../lib/siteData";
 import { FieldControl, labelClass } from "./form/Field";
@@ -15,6 +15,12 @@ import { PreviewPanel } from "./PreviewPanel";
 import { templates } from "../templates/registry";
 
 const emptyForm: FormState = { niche: "", design: "simple", values: {} };
+
+// Opened from a preview's "Edit details" button (/?edit=<id>): start with that form filled in.
+function startingForm(): FormState {
+  const id = editIdFromLocation();
+  return (id ? loadPreviewForm(id) : null) ?? emptyForm;
+}
 
 function StepBadge({ n }: { n: number }) {
   return (
@@ -37,7 +43,7 @@ function focusFirstInvalid(errors: Record<string, string>) {
 }
 
 export function LiveDemo() {
-  const [form, setForm] = useState<FormState>(emptyForm);
+  const [form, setForm] = useState<FormState>(startingForm);
   const [showErrors, setShowErrors] = useState(false);
   const [result, setResult] = useState<SiteData | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
@@ -50,6 +56,13 @@ export function LiveDemo() {
   useEffect(() => {
     if (result) previewRef.current?.scrollIntoView({ block: "start" });
   }, [result]);
+
+  // Coming back from a preview to edit: drop ?edit= from the address bar and show the form.
+  useEffect(() => {
+    if (!editIdFromLocation()) return;
+    window.history.replaceState(null, "", window.location.pathname);
+    document.getElementById("live-demo")?.scrollIntoView({ block: "start" });
+  }, []);
 
   function setValue(key: string, value: FieldValue) {
     setForm((prev) => ({ ...prev, values: { ...prev.values, [key]: value } }));
@@ -85,7 +98,7 @@ export function LiveDemo() {
     // Open the finished site in its own tab. This runs inside the click, so pop-up blockers allow it.
     let id: string | null = null;
     if (templates[data.niche]?.[data.design]) {
-      id = savePreview(data);
+      id = savePreview(form);
       if (id) window.open(previewUrl(id), "_blank");
     }
     setPreviewId(id);

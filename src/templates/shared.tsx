@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { CSSProperties, MouseEvent as ReactMouseEvent, ReactNode, TouchEvent } from "react";
 import type { ListItem, SiteData } from "../lib/siteData";
 
 // ---- reading the optional fields ------------------------------------------------------------
@@ -88,11 +88,13 @@ interface PicProps {
   alt: string;
   tone?: number;
   className?: string;
+  // "cover" fills the box and crops; "contain" shows the whole picture.
+  fit?: "cover" | "contain";
 }
 
 // An uploaded or linked image. Order: the team's image, then the template's default photo,
 // then a calm placeholder. A file that fails to load is skipped, so a missing default is harmless.
-export function Pic({ src, fallback, alt, tone = 0, className = "" }: PicProps) {
+export function Pic({ src, fallback, alt, tone = 0, className = "", fit = "cover" }: PicProps) {
   const [failed, setFailed] = useState<string[]>([]);
   const current = [src, fallback].find((s): s is string => Boolean(s) && !failed.includes(s as string));
   if (current) {
@@ -102,7 +104,7 @@ export function Pic({ src, fallback, alt, tone = 0, className = "" }: PicProps) 
         alt={alt}
         loading="lazy"
         onError={() => setFailed((f) => [...f, current])}
-        className={`h-full w-full object-cover ${className}`}
+        className={`h-full w-full ${fit === "contain" ? "object-contain" : "object-cover"} ${className}`}
       />
     );
   }
@@ -110,10 +112,10 @@ export function Pic({ src, fallback, alt, tone = 0, className = "" }: PicProps) 
   const from = pair ? pair[0] : "#CDBBA6";
   const to = pair ? pair[1] : "#A98F76";
   return (
-    <div
+    <span
       role="img"
       aria-label={alt}
-      className={`h-full w-full ${className}`}
+      className={`block h-full w-full ${className}`}
       style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
     />
   );
@@ -320,4 +322,162 @@ export function useParallax<T extends HTMLElement>(strength = 0.05) {
 // True when the site is open on its own full-page preview tab (fixed buttons make sense there).
 export function isFullPagePreview(): boolean {
   return typeof window !== "undefined" && new URLSearchParams(window.location.search).has("preview");
+}
+
+// ---- fonts -------------------------------------------------------------------------------------
+
+interface FontLook {
+  heading: string;
+  body: string;
+  weight: number;
+  track: string;
+}
+
+const SANS = "'Inter', system-ui, -apple-system, sans-serif";
+
+// The three looks the team can choose from. Each falls back to a system font if the web font
+// has not loaded.
+const fontLooks: Record<string, FontLook> = {
+  modern: { heading: SANS, body: SANS, weight: 600, track: "-0.03em" },
+  classic: { heading: "'Newsreader', Georgia, 'Times New Roman', serif", body: SANS, weight: 500, track: "-0.015em" },
+  bold: { heading: "'Manrope', 'Inter', system-ui, sans-serif", body: "'Manrope', 'Inter', system-ui, sans-serif", weight: 800, track: "-0.04em" },
+};
+
+// Put on the template's outer element: sets the body font and the variables HEAD reads.
+export function fontVars(data: SiteData): CSSProperties {
+  const look = fontLooks[data.fontStyle] ?? fontLooks["modern"];
+  return {
+    "--oc-heading": look?.heading ?? SANS,
+    "--oc-weight": String(look?.weight ?? 600),
+    "--oc-track": look?.track ?? "-0.03em",
+    fontFamily: look?.body ?? SANS,
+  } as CSSProperties;
+}
+
+// Put on every heading so it follows the chosen font style.
+export const HEAD = "[font-family:var(--oc-heading)] [font-weight:var(--oc-weight)] [letter-spacing:var(--oc-track)]";
+
+// ---- photo viewer ------------------------------------------------------------------------------
+
+export interface LightboxItem {
+  src?: string;
+  fallback?: string;
+  title?: string;
+  caption?: string;
+}
+
+interface LightboxProps {
+  items: LightboxItem[];
+  index: number;
+  onClose: () => void;
+  onIndex: (index: number) => void;
+}
+
+// A full-screen photo viewer: arrows or swipe to move, Escape or the close button to leave.
+export function Lightbox({ items, index, onClose, onIndex }: LightboxProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const touchStart = useRef<number | null>(null);
+  const count = items.length;
+  const item = items[index];
+
+  // Lock the page behind it, and give focus back to the tile that opened it when it closes.
+  useEffect(() => {
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+    return () => {
+      document.body.style.overflow = overflow;
+      opener?.focus();
+    };
+  }, []);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+      else if (e.key === "ArrowRight") onIndex((index + 1) % count);
+      else if (e.key === "ArrowLeft") onIndex((index - 1 + count) % count);
+      else if (e.key === "Tab") {
+        // Keep keyboard focus inside the viewer.
+        const buttons = dialogRef.current?.querySelectorAll<HTMLButtonElement>("button") ?? [];
+        const first = buttons[0];
+        const last = buttons[buttons.length - 1];
+        if (!first || !last) return;
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [index, count, onClose, onIndex]);
+
+  if (!item) return null;
+
+  function onTouchEnd(e: TouchEvent<HTMLDivElement>) {
+    const start = touchStart.current;
+    touchStart.current = null;
+    const end = e.changedTouches[0]?.clientX;
+    if (start === null || end === undefined || count < 2) return;
+    if (end - start > 60) onIndex((index - 1 + count) % count);
+    else if (start - end > 60) onIndex((index + 1) % count);
+  }
+
+  const round = "flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white transition-colors duration-200 hover:bg-white/25";
+
+  return (
+    <div
+      ref={dialogRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label={item.title || "Photo viewer"}
+      onClick={onClose}
+      onTouchStart={(e: TouchEvent<HTMLDivElement>) => {
+        touchStart.current = e.touches[0]?.clientX ?? null;
+      }}
+      onTouchEnd={onTouchEnd}
+      className="animate-pop fixed inset-0 z-[60] flex flex-col bg-black/90 p-3 text-white sm:p-6"
+    >
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-[13px] font-semibold text-white/80">
+          {index + 1} / {count}
+        </span>
+        <button ref={closeRef} type="button" onClick={onClose} aria-label="Close photo viewer" className={round}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="h-5 w-5" aria-hidden="true">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </div>
+
+      <div className="flex min-h-0 flex-1 items-center justify-center gap-3 py-3">
+        {count > 1 && (
+          <button type="button" aria-label="Previous photo" onClick={(e: ReactMouseEvent<HTMLButtonElement>) => { e.stopPropagation(); onIndex((index - 1 + count) % count); }} className={`${round} hidden sm:flex`}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
+              <path d="m15 6-6 6 6 6" />
+            </svg>
+          </button>
+        )}
+        <div onClick={(e: ReactMouseEvent<HTMLDivElement>) => e.stopPropagation()} className="h-full max-h-[78vh] w-full max-w-5xl">
+          <Pic src={item.src} fallback={item.fallback} alt={item.title || "Photo"} fit="contain" className="rounded-xl" />
+        </div>
+        {count > 1 && (
+          <button type="button" aria-label="Next photo" onClick={(e: ReactMouseEvent<HTMLButtonElement>) => { e.stopPropagation(); onIndex((index + 1) % count); }} className={`${round} hidden sm:flex`}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
+              <path d="m9 6 6 6-6 6" />
+            </svg>
+          </button>
+        )}
+      </div>
+
+      <div className="min-h-[2.5rem] text-center" onClick={(e: ReactMouseEvent<HTMLDivElement>) => e.stopPropagation()}>
+        {item.title && <p className="text-[15px] font-semibold">{item.title}</p>}
+        {item.caption && <p className="text-[12px] text-white/70">{item.caption}</p>}
+      </div>
+    </div>
+  );
 }

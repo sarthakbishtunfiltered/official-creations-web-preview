@@ -1,8 +1,11 @@
 import { designs, getNiche } from "../data/niches";
-import type { SiteData } from "./siteData";
+import { buildSiteData } from "./siteData";
+import type { FormState, SiteData } from "./siteData";
 
-// A preview opens in its own browser tab, so the generated site data is handed over through
-// localStorage (shared by every tab of this site). Only the last few previews are kept.
+// A preview opens in its own browser tab, so what the team typed is handed over through
+// localStorage (shared by every tab of this site). The website itself is rebuilt from the form
+// each time, which also lets "Edit details" put the form back as it was. Only the last few
+// previews are kept.
 const PREFIX = "oc-preview:";
 const INDEX = "oc-preview-ids";
 const KEEP = 5;
@@ -20,10 +23,10 @@ function newId(): string {
   return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 }
 
-// Stores the preview and returns its id, or null if the browser won't store it
+// Stores the form and returns the preview's id, or null if the browser won't store it
 // (private mode, or the images are too big for the storage limit).
-export function savePreview(data: SiteData): string | null {
-  const json = JSON.stringify(data);
+export function savePreview(form: FormState): string | null {
+  const json = JSON.stringify(form);
   const attempt = (): string | null => {
     const id = newId();
     localStorage.setItem(PREFIX + id, json);
@@ -49,42 +52,65 @@ export function savePreview(data: SiteData): string | null {
   }
 }
 
-function isText(v: unknown): v is string {
-  return typeof v === "string";
-}
-
-function isSiteData(v: unknown): v is SiteData {
+function isFormState(v: unknown): v is FormState {
   if (typeof v !== "object" || v === null) return false;
   const o = v as Record<string, unknown>;
-  const fields = o["fields"];
+  const values = o["values"];
   return (
-    isText(o["niche"]) &&
+    typeof o["niche"] === "string" &&
     getNiche(o["niche"]) !== undefined &&
-    isText(o["design"]) &&
+    typeof o["design"] === "string" &&
     designs.some((d) => d.id === o["design"]) &&
-    ["businessName", "ownerName", "phone", "whatsapp", "city", "tagline", "about", "brandColor"].every((k) => isText(o[k])) &&
-    typeof fields === "object" &&
-    fields !== null
+    typeof values === "object" &&
+    values !== null &&
+    !Array.isArray(values)
   );
 }
 
-export function loadPreview(id: string): SiteData | null {
+export function loadPreviewForm(id: string): FormState | null {
   try {
     const parsed: unknown = JSON.parse(localStorage.getItem(PREFIX + id) ?? "null");
-    return isSiteData(parsed) ? parsed : null;
+    return isFormState(parsed) ? parsed : null;
   } catch {
     return null;
   }
 }
 
-export function previewUrl(id: string): string {
+export function loadPreview(id: string): SiteData | null {
+  const form = loadPreviewForm(id);
+  if (!form) return null;
+  try {
+    return buildSiteData(form);
+  } catch {
+    return null;
+  }
+}
+
+function baseUrl(): URL {
   const url = new URL(window.location.href);
   url.search = "";
   url.hash = "";
+  return url;
+}
+
+export function previewUrl(id: string): string {
+  const url = baseUrl();
   url.searchParams.set("preview", id);
+  return url.toString();
+}
+
+// The generator page with the form filled in from a stored preview.
+export function editUrl(id: string): string {
+  const url = baseUrl();
+  url.searchParams.set("edit", id);
+  url.hash = "live-demo";
   return url.toString();
 }
 
 export function previewIdFromLocation(): string | null {
   return new URLSearchParams(window.location.search).get("preview") || null;
+}
+
+export function editIdFromLocation(): string | null {
+  return new URLSearchParams(window.location.search).get("edit") || null;
 }

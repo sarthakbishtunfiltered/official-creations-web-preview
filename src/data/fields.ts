@@ -53,6 +53,9 @@ export const coreFields: FieldDef[] = [
   { key: "city", label: "City", type: "text", required: true, placeholder: "e.g. Ahmedabad" },
 ];
 
+// The font looks a template can use. Blank means Modern.
+export const fontStyleOptions: string[] = ["Modern", "Classic", "Bold"];
+
 // ---------------------------------------------------------------------------
 // Group 1: contact, logo, colours and words
 // ---------------------------------------------------------------------------
@@ -67,6 +70,13 @@ const lookBlock: Block = {
     { key: "address", label: "Full address", type: "textarea", placeholder: "Leave blank to show only the city" },
     { key: "logo", label: "Logo", type: "image", maxDim: 800, help: "Leave blank to show the business name as text." },
     { key: "brandColor", label: "Brand color", type: "color", help: "Leave unset to use the niche's default color." },
+    {
+      key: "fontStyle",
+      label: "Font style",
+      type: "select",
+      options: fontStyleOptions,
+      help: "Modern is the default. Classic uses a serif for headings. Bold is heavier and tighter.",
+    },
     { key: "tagline", label: "Tagline", type: "text", placeholder: "Leave blank for a default line" },
     {
       key: "about",

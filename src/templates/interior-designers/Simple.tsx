@@ -1,15 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { Phone } from "lucide-react";
 import type { ListItem, SiteData } from "../../lib/siteData";
+import type { LightboxItem } from "../shared";
 import { defaultImages, defaultProject } from "./defaults";
 import {
   ArrowIcon,
   CountUp,
+  HEAD,
+  Lightbox,
   Pic,
   Reveal,
   excerpt,
   flag,
+  fontVars,
   isBright,
   isFullPagePreview,
   list,
@@ -110,7 +114,7 @@ function HeroTitle({ text }: { text: string }) {
   return (
     <h1
       aria-label={text}
-      className="max-w-[16ch] text-balance text-[38px] font-semibold leading-[1.02] tracking-[-0.035em] text-white sm:text-[64px] lg:text-[84px]"
+      className={`max-w-[16ch] text-balance text-[38px] leading-[1.02] text-white sm:text-[64px] lg:text-[84px] ${HEAD}`}
     >
       {words.map((w, i) => (
         <span key={`${w}-${i}`} aria-hidden="true">
@@ -131,6 +135,9 @@ function HeroTitle({ text }: { text: string }) {
 
 export function InteriorSimple({ data }: { data: SiteData }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [viewer, setViewer] = useState<{ kind: "work" | "gallery"; index: number } | null>(null);
+  const [scrolled, setScrolled] = useState(false);
+  const [active, setActive] = useState("");
   const heroImage = useParallax<HTMLDivElement>();
   const fullPage = isFullPagePreview();
 
@@ -186,6 +193,32 @@ export function InteriorSimple({ data }: { data: SiteData }) {
     { id: "ts-contact", label: "Contact", show: true },
   ];
   const navShown = nav.filter((n) => n.show);
+  const navKey = navShown.map((n) => n.id).join(",");
+
+  // Photos for the viewer, in the same order as the tiles they open from.
+  const workItems: LightboxItem[] = projects.map((p, i) => ({ src: p["image"], fallback: defaultProject(i), title: p["title"], caption: p["type"] }));
+  const galleryItems: LightboxItem[] = gallery.map((g, i) => ({ src: g["image"], fallback: defaultProject(i + 3), title: g["caption"] }));
+
+  // The sticky menu gets a hairline once the page has moved, and marks the section being read.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return;
+    const els = navKey.split(",").map((id) => document.getElementById(id)).filter((el): el is HTMLElement => el !== null);
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) if (entry.isIntersecting) setActive(entry.target.id);
+      },
+      { rootMargin: "-35% 0px -60% 0px" },
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [navKey]);
 
   const socials: [string, string][] = [
     ["Instagram", safeHref(str(data, "instagram"))],
@@ -199,26 +232,34 @@ export function InteriorSimple({ data }: { data: SiteData }) {
   }
 
   return (
-    <div className={`bg-white font-sans ${fullPage ? "pb-20 md:pb-0" : ""}`} style={{ color: INK }}>
-      <div className="overflow-hidden bg-white">
+    <div className={`bg-white font-sans ${fullPage ? "pb-20 md:pb-0" : ""}`} style={{ color: INK, ...fontVars(data) }}>
+      <div className="overflow-x-clip bg-white">
         {banner && (
           <div className="px-4 py-2 text-center text-[12px] font-semibold" style={{ backgroundColor: brand, color: onBrand }}>
             {banner}
           </div>
         )}
 
-        {/* Navigation */}
+        {/* Navigation: stays at the top while scrolling */}
+        <div className={`sticky top-[var(--oc-top,0px)] z-30 border-b bg-white/90 backdrop-blur transition-colors duration-300 ${scrolled ? "border-black/10" : "border-transparent"}`}>
         <header className="mx-auto flex w-full max-w-[1400px] items-center justify-between gap-3 px-4 py-4 sm:px-8">
           <div className="flex min-w-0 items-center gap-3">
             {data.logo ? (
               <img src={data.logo} alt={`${data.businessName} logo`} className="h-9 w-auto max-w-[140px] object-contain" />
             ) : (
-              <span className="truncate text-[20px] font-semibold tracking-[-0.02em]">{data.businessName}</span>
+              <span className={`truncate text-[20px] ${HEAD}`}>{data.businessName}</span>
             )}
           </div>
           <nav className="hidden items-center gap-6 md:flex" aria-label="Sections">
             {navShown.map((n) => (
-              <button key={n.id} type="button" onClick={() => go(n.id)} className="cursor-pointer text-[13px] font-medium hover:opacity-60" style={{ color: INK }}>
+              <button
+                key={n.id}
+                type="button"
+                onClick={() => go(n.id)}
+                aria-current={active === n.id ? "true" : undefined}
+                className={`cursor-pointer border-b-2 pb-0.5 text-[13px] font-medium transition-colors duration-200 ${active === n.id ? "" : "hover:opacity-60"}`}
+                style={{ color: INK, borderColor: active === n.id ? INK : "transparent" }}
+              >
                 {n.label}
               </button>
             ))}
@@ -256,6 +297,7 @@ export function InteriorSimple({ data }: { data: SiteData }) {
             ))}
           </nav>
         )}
+        </div>
 
         <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-14 px-4 pb-10 sm:gap-20 sm:px-8 sm:pb-16">
           {/* Hero */}
@@ -295,7 +337,7 @@ export function InteriorSimple({ data }: { data: SiteData }) {
               <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
               <div className="absolute bottom-0 left-0 rounded-tr-[22px] bg-white px-5 py-4 sm:px-7 sm:py-5">
                 <span className="block text-[11px] font-medium" style={{ color: MUTED }}>{first?.["type"] || "Featured"}</span>
-                <span className="block text-[24px] font-semibold leading-[1.1] tracking-[-0.02em] sm:text-[34px]">
+                <span className={`block text-[24px] leading-[1.1] sm:text-[34px] ${HEAD}`}>
                   {first?.["title"] || data.nicheLabel}
                 </span>
               </div>
@@ -308,7 +350,7 @@ export function InteriorSimple({ data }: { data: SiteData }) {
                     <Pill key={t}>{t}</Pill>
                   ))}
                 </div>
-                <p className="text-[20px] font-semibold leading-[1.2] tracking-[-0.02em]">
+                <p className={`text-[20px] leading-[1.2] ${HEAD}`}>
                   Based in {data.city}, led by {data.ownerName}.
                 </p>
               </div>
@@ -331,7 +373,7 @@ export function InteriorSimple({ data }: { data: SiteData }) {
             <section aria-label="In numbers" className={`grid grid-cols-2 gap-8 text-center ${stats.length >= 4 ? "md:grid-cols-4" : stats.length === 3 ? "md:grid-cols-3" : ""}`}>
               {stats.map((s, i) => (
                 <Reveal key={s.label + s.value} delay={i * 100}>
-                  <div className="text-[44px] font-semibold leading-none tracking-[-0.03em] sm:text-[56px]">
+                  <div className={`text-[44px] leading-none sm:text-[56px] ${HEAD}`}>
                     <CountUp value={s.value} />
                   </div>
                   <div className="mt-2 text-[12px]" style={{ color: MUTED }}>{s.label}</div>
@@ -341,13 +383,13 @@ export function InteriorSimple({ data }: { data: SiteData }) {
           )}
 
           {/* About */}
-          <section id="ts-about" className="grid grid-cols-1 items-center gap-8 md:grid-cols-2 md:gap-12">
+          <section id="ts-about" className="scroll-mt-[calc(var(--oc-top,0px)+76px)] grid grid-cols-1 items-center gap-8 md:grid-cols-2 md:gap-12">
             <Reveal className="aspect-[4/3] overflow-hidden rounded-[22px]">
               <Pic src={aboutImage || ownerPhoto} fallback={defaultImages.about} alt={`About ${data.businessName}`} tone={2} />
             </Reveal>
             <Reveal delay={120} className="flex flex-col items-start gap-4">
               <Eyebrow>{`About · ${data.city}`}</Eyebrow>
-              <h2 className="text-[30px] font-semibold leading-[1.1] tracking-[-0.025em] sm:text-[42px]">
+              <h2 className={`text-[30px] leading-[1.1] sm:text-[42px] ${HEAD}`}>
                 About {data.businessName}
               </h2>
               <p className="whitespace-pre-line text-[15px] leading-[1.7]" style={{ color: MUTED }}>{data.about}</p>
@@ -371,7 +413,7 @@ export function InteriorSimple({ data }: { data: SiteData }) {
               <div className="animate-marquee" style={{ animationDuration: "45s" }}>
                 {Array.from({ length: 8 }, (_, rep) =>
                   typeList.map((t) => (
-                    <span key={`${rep}-${t}`} className="flex shrink-0 items-center gap-8 pr-8 text-[22px] font-semibold tracking-[-0.02em] sm:text-[30px]">
+                    <span key={`${rep}-${t}`} className={`flex shrink-0 items-center gap-8 pr-8 text-[22px] sm:text-[30px] ${HEAD}`}>
                       {t}
                       <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: brand }} />
                     </span>
@@ -382,10 +424,10 @@ export function InteriorSimple({ data }: { data: SiteData }) {
           )}
 
           {/* How we work */}
-          <section id="ts-process" className="flex flex-col gap-10">
+          <section id="ts-process" className="scroll-mt-[calc(var(--oc-top,0px)+76px)] flex flex-col gap-10">
             <Reveal className="flex flex-col gap-3">
               <Eyebrow>How we work</Eyebrow>
-              <h2 className="text-[30px] font-semibold leading-[1.1] tracking-[-0.025em] sm:text-[42px]">
+              <h2 className={`text-[30px] leading-[1.1] sm:text-[42px] ${HEAD}`}>
                 From first call to the final handover
               </h2>
             </Reveal>
@@ -405,7 +447,7 @@ export function InteriorSimple({ data }: { data: SiteData }) {
                         <span className="absolute left-11 right-[-1.5rem] top-[18px] hidden h-px bg-black/15 md:block" aria-hidden="true" />
                       </>
                     )}
-                    <h3 className="text-[19px] font-semibold tracking-[-0.02em]">{s.title}</h3>
+                    <h3 className={`text-[19px] ${HEAD}`}>{s.title}</h3>
                     {s.description && <p className="mt-2 text-[14px] leading-[1.6]" style={{ color: MUTED }}>{s.description}</p>}
                   </Reveal>
                 </li>
@@ -415,17 +457,17 @@ export function InteriorSimple({ data }: { data: SiteData }) {
 
           {/* Services */}
           {services.length > 0 && (
-            <section id="ts-services" className="flex flex-col gap-8">
+            <section id="ts-services" className="scroll-mt-[calc(var(--oc-top,0px)+76px)] flex flex-col gap-8">
               <Reveal className="flex flex-col gap-3">
                 <Eyebrow>What we do</Eyebrow>
-                <h2 className="text-[30px] font-semibold leading-[1.1] tracking-[-0.025em] sm:text-[42px]">Our services</h2>
+                <h2 className={`text-[30px] leading-[1.1] sm:text-[42px] ${HEAD}`}>Our services</h2>
               </Reveal>
               <div className={`${scroller} md:grid-cols-2 lg:grid-cols-3`}>
                 {services.map((s: ListItem, i) => (
                   <Reveal key={s.id} delay={(i % 3) * 100} className="min-w-[78%] snap-start sm:min-w-[46%] md:min-w-0">
                     <div className="flex h-full flex-col gap-3 rounded-[22px] p-5 transition-transform duration-500 hover:-translate-y-1 sm:p-6" style={{ backgroundColor: CARD }}>
                       <span className="text-[12px] font-semibold" style={{ color: MUTED }}>{String(i + 1).padStart(2, "0")}</span>
-                      <h3 className="text-[20px] font-semibold tracking-[-0.02em]">{s["name"]}</h3>
+                      <h3 className={`text-[20px] ${HEAD}`}>{s["name"]}</h3>
                       {s["description"] && <p className="text-[14px] leading-[1.6]" style={{ color: MUTED }}>{s["description"]}</p>}
                       {s["price"] && <p className="mt-auto pt-2 text-[13px] font-semibold">From {s["price"]}</p>}
                     </div>
@@ -437,9 +479,9 @@ export function InteriorSimple({ data }: { data: SiteData }) {
 
           {/* Projects */}
           {projects.length > 0 && (
-            <section id="ts-work" className="flex flex-col gap-8">
+            <section id="ts-work" className="scroll-mt-[calc(var(--oc-top,0px)+76px)] flex flex-col gap-8">
               <Reveal className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-                <h2 className="text-[30px] font-semibold leading-[1.1] tracking-[-0.025em] sm:text-[42px]">
+                <h2 className={`text-[30px] leading-[1.1] sm:text-[42px] ${HEAD}`}>
                   Explore our <br className="hidden sm:inline" />recent work
                 </h2>
                 {brochure && (
@@ -451,21 +493,26 @@ export function InteriorSimple({ data }: { data: SiteData }) {
               <div className="columns-2 gap-3 md:columns-3">
                 {projects.map((p, i) => (
                   <Reveal key={p.id} delay={(i % 3) * 90} className="mb-3 break-inside-avoid">
-                    <figure className="group relative overflow-hidden rounded-[18px]">
-                      <div className={tileShapes[i % tileShapes.length]}>
-                        <div className="h-full w-full transition-transform duration-[900ms] ease-out group-hover:scale-105">
+                    <button
+                      type="button"
+                      onClick={() => setViewer({ kind: "work", index: i })}
+                      aria-label={`View ${p["title"] || `project ${i + 1}`} larger`}
+                      className="group relative block w-full cursor-zoom-in overflow-hidden rounded-[18px] text-left"
+                    >
+                      <span className={`block ${tileShapes[i % tileShapes.length]}`}>
+                        <span className="block h-full w-full transition-transform duration-[900ms] ease-out group-hover:scale-105">
                           <Pic src={p["image"]} fallback={defaultProject(i)} alt={p["title"] || `Project ${i + 1}`} tone={i} />
-                        </div>
-                      </div>
-                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                      <figcaption className="absolute bottom-3 left-4 right-14 text-white">
+                        </span>
+                      </span>
+                      <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                      <span className="absolute bottom-3 left-4 right-14 block text-white">
                         {p["type"] && <span className="block text-[11px] text-white/80">{p["type"]}</span>}
                         <span className="block text-[15px] font-semibold leading-tight">{p["title"]}</span>
-                      </figcaption>
+                      </span>
                       <span className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-white transition-transform duration-500 group-hover:rotate-45" style={{ color: INK }}>
                         <ArrowIcon className="h-3.5 w-3.5" />
                       </span>
-                    </figure>
+                    </button>
                   </Reveal>
                 ))}
               </div>
@@ -476,19 +523,24 @@ export function InteriorSimple({ data }: { data: SiteData }) {
           {gallery.length > 0 && (
             <section className="flex flex-col gap-6" aria-label="More photos">
               <Reveal>
-                <h2 className="text-[24px] font-semibold tracking-[-0.02em] sm:text-[30px]">More from our studio</h2>
+                <h2 className={`text-[24px] sm:text-[30px] ${HEAD}`}>More from our studio</h2>
               </Reveal>
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 {gallery.map((g, i) => (
                   <Reveal key={g.id} delay={(i % 4) * 80}>
-                    <figure className="group flex flex-col gap-2">
-                      <div className="aspect-square overflow-hidden rounded-[16px]">
-                        <div className="h-full w-full transition-transform duration-[900ms] ease-out group-hover:scale-105">
+                    <button
+                      type="button"
+                      onClick={() => setViewer({ kind: "gallery", index: i })}
+                      aria-label={`View ${g["caption"] || `photo ${i + 1}`} larger`}
+                      className="group flex w-full cursor-zoom-in flex-col gap-2 text-left"
+                    >
+                      <span className="block aspect-square overflow-hidden rounded-[16px]">
+                        <span className="block h-full w-full transition-transform duration-[900ms] ease-out group-hover:scale-105">
                           <Pic src={g["image"]} fallback={defaultProject(i + 3)} alt={g["caption"] || `Photo ${i + 1}`} tone={i + 2} />
-                        </div>
-                      </div>
-                      {g["caption"] && <figcaption className="text-[12px]" style={{ color: MUTED }}>{g["caption"]}</figcaption>}
-                    </figure>
+                        </span>
+                      </span>
+                      {g["caption"] && <span className="block text-[12px]" style={{ color: MUTED }}>{g["caption"]}</span>}
+                    </button>
                   </Reveal>
                 ))}
               </div>
@@ -499,7 +551,7 @@ export function InteriorSimple({ data }: { data: SiteData }) {
           {beforeAfter.length > 0 && (
             <section className="flex flex-col gap-8">
               <Reveal>
-                <h2 className="text-[30px] font-semibold leading-[1.1] tracking-[-0.025em] sm:text-[42px]">Before &amp; after</h2>
+                <h2 className={`text-[30px] leading-[1.1] sm:text-[42px] ${HEAD}`}>Before &amp; after</h2>
               </Reveal>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {beforeAfter.map((b, i) => (
@@ -523,7 +575,7 @@ export function InteriorSimple({ data }: { data: SiteData }) {
           {testimonials.length > 0 && (
             <section className="flex flex-col gap-8">
               <Reveal>
-                <h2 className="text-[30px] font-semibold leading-[1.1] tracking-[-0.025em] sm:text-[42px]">Kind words</h2>
+                <h2 className={`text-[30px] leading-[1.1] sm:text-[42px] ${HEAD}`}>Kind words</h2>
               </Reveal>
               <div className={`${scroller} md:grid-cols-3`}>
                 {testimonials.map((t, i) => (
@@ -547,7 +599,7 @@ export function InteriorSimple({ data }: { data: SiteData }) {
           {faqs.length > 0 && (
             <section className="grid grid-cols-1 gap-8 md:grid-cols-3">
               <Reveal>
-                <h2 className="text-[30px] font-semibold leading-[1.1] tracking-[-0.025em] sm:text-[42px]">Questions</h2>
+                <h2 className={`text-[30px] leading-[1.1] sm:text-[42px] ${HEAD}`}>Questions</h2>
               </Reveal>
               <Reveal delay={100} className="flex flex-col md:col-span-2">
                 {faqs.map((f) => (
@@ -565,11 +617,11 @@ export function InteriorSimple({ data }: { data: SiteData }) {
         </main>
 
         {/* Contact */}
-        <footer id="ts-contact" className="bg-[#111111] py-12 text-white sm:py-16">
+        <footer id="ts-contact" className="scroll-mt-[calc(var(--oc-top,0px)+76px)] bg-[#111111] py-12 text-white sm:py-16">
           <div className="mx-auto w-full max-w-[1400px] px-5 sm:px-8">
           <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-14">
             <Reveal className="flex flex-col gap-5">
-              <h2 className="text-[34px] font-semibold leading-[1.08] tracking-[-0.03em] sm:text-[48px]">
+              <h2 className={`text-[34px] leading-[1.08] sm:text-[48px] ${HEAD}`}>
                 Let&rsquo;s talk about <br className="hidden sm:inline" />your space.
               </h2>
               <p className="max-w-sm text-[14px] leading-[1.7] text-white/60">
@@ -649,13 +701,22 @@ export function InteriorSimple({ data }: { data: SiteData }) {
 
           <div className="mt-12 flex flex-col-reverse items-start justify-between gap-6 border-t border-white/10 pt-8 sm:flex-row sm:items-end">
             <span className="text-[12px] text-white/40">© {new Date().getFullYear()} {data.businessName}</span>
-            <span className="break-words text-[36px] font-semibold leading-none tracking-[-0.04em] sm:text-right sm:text-[64px]">
+            <span className={`break-words text-[36px] leading-none sm:text-right sm:text-[64px] ${HEAD}`}>
               {data.businessName}
             </span>
           </div>
           </div>
         </footer>
       </div>
+
+      {viewer && (
+        <Lightbox
+          items={viewer.kind === "work" ? workItems : galleryItems}
+          index={viewer.index}
+          onClose={() => setViewer(null)}
+          onIndex={(index) => setViewer({ kind: viewer.kind, index })}
+        />
+      )}
 
       {/* Quick actions: a bar on phones, a round WhatsApp button on larger screens */}
       {fullPage && (
