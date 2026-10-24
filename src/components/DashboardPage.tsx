@@ -561,6 +561,9 @@ export function DashboardPage() {
             <span className="rounded-full bg-[#111111] px-2.5 py-1 text-[11px] font-bold text-white">
               {isOwner ? "Owner" : "Team"}
             </span>
+            <a href="/#live-demo" className={`${quietButton} inline-block`}>
+              Generator
+            </a>
             <button type="button" className={quietButton} onClick={() => void loadDashboard()} disabled={busy || loading}>
               {loading ? "Refreshing..." : "Refresh"}
             </button>

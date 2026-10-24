@@ -4,11 +4,15 @@ import { HowItWorks } from "./components/HowItWorks";
 import { BuiltDifferent } from "./components/BuiltDifferent";
 import { SupportedNiches } from "./components/SupportedNiches";
 import { LiveDemo } from "./components/LiveDemo";
+import { ProfileMenu } from "./components/ProfileMenu";
+import { useTeamAccess } from "./lib/useTeamAccess";
 import { siteConfig } from "./config";
 
 const whatsappDigits = siteConfig.whatsappNumber.replace(/\D/g, "");
 
 function App() {
+  const access = useTeamAccess();
+
   return (
     <div className="min-h-screen bg-[#EAE4E5] flex flex-col font-sans overflow-x-hidden">
       {/* Navigation Bar */}
@@ -34,7 +38,9 @@ function App() {
 
         {/* Action Buttons: each one shows only when its target is set in src/config.ts */}
         <div className="flex items-center gap-3">
-          {siteConfig.loginHref && (
+          {(access.status === "approved" || access.status === "denied") && <ProfileMenu access={access} />}
+
+          {siteConfig.loginHref && (access.status === "signed_out" || access.status === "error") && (
             <a
               href={siteConfig.loginHref}
               className="hidden sm:inline-flex px-5 py-2 border border-[#BCB6B7] bg-transparent text-[#111111] hover:bg-[#BCB6B7]/10 transition-colors duration-200 rounded-lg text-[14px] font-medium"

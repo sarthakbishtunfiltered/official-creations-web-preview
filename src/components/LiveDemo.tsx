@@ -9,9 +9,11 @@ import type { Design } from "../data/niches";
 import { editIdFromLocation, loadPreviewForm, previewUrl, savePreview } from "../lib/previewStore";
 import { buildSiteData, countFilled, validate } from "../lib/siteData";
 import type { FieldValue, FormState, SiteData } from "../lib/siteData";
+import { useTeamAccess } from "../lib/useTeamAccess";
 import { FieldControl, labelClass } from "./form/Field";
 import { NicheSelect } from "./form/NicheSelect";
 import { PreviewPanel } from "./PreviewPanel";
+import { TeamGate } from "./TeamGate";
 import { templates } from "../templates/registry";
 
 const emptyForm: FormState = { niche: "", design: "simple", values: {} };
@@ -43,6 +45,7 @@ function focusFirstInvalid(errors: Record<string, string>) {
 }
 
 export function LiveDemo() {
+  const access = useTeamAccess();
   const [form, setForm] = useState<FormState>(startingForm);
   const [showErrors, setShowErrors] = useState(false);
   const [result, setResult] = useState<SiteData | null>(null);
@@ -195,6 +198,16 @@ export function LiveDemo() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="lg:col-span-7"
           >
+            {access.status !== "approved" ? (
+              <TeamGate access={access} />
+            ) : (
+            <>
+            <p className="mb-3 flex flex-wrap items-center justify-between gap-2 text-[12px] font-medium text-[#6B6566]">
+              <span className="[overflow-wrap:anywhere]">Signed in as {access.email}</span>
+              <a href="/dashboard" className="font-semibold text-[#111111] underline underline-offset-4">
+                Open dashboard
+              </a>
+            </p>
             <form
               noValidate
               autoComplete="off"
@@ -302,6 +315,8 @@ export function LiveDemo() {
                 </button>
               </div>
             </form>
+            </>
+            )}
           </motion.div>
         </div>
       </div>
