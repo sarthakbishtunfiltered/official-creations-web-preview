@@ -86,8 +86,11 @@ export function loadPreview(id: string): SiteData | null {
   }
 }
 
+// Links always point at the site root, so a link made from the dashboard ("/dashboard") is
+// the same "/?preview=<id>" link as one made from the homepage.
 function baseUrl(): URL {
   const url = new URL(window.location.href);
+  url.pathname = "/";
   url.search = "";
   url.hash = "";
   return url;
