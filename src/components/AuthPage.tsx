@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { PENDING_MESSAGE, REJECTED_MESSAGE, requestAccess } from "../lib/access";
 import { supabase } from "../lib/supabase";
 import { AuthShell } from "./AuthShell";
 
@@ -16,6 +17,8 @@ export function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [message, setMessage] = useState("");
+  // A calm, non-error message, for "your request is waiting for approval".
+  const [notice, setNotice] = useState("");
 
   async function verifyApproval() {
     const { data, error } = await supabase.rpc("is_approved_user");
@@ -27,8 +30,20 @@ export function AuthPage() {
     }
 
     if (data !== true) {
+      // Not approved yet: put the email in the owner's list of requests, then sign out.
+      let denied = "Access denied. Your email address is not approved for Official Creations.";
+      let waiting = "";
+      try {
+        const status = await requestAccess();
+        if (status === "approved") return true;
+        if (status === "pending") waiting = PENDING_MESSAGE;
+        else denied = REJECTED_MESSAGE;
+      } catch {
+        // Requests aren't set up in the database yet: fall back to the plain refusal.
+      }
       await supabase.auth.signOut();
-      setMessage("Access denied. Your email address is not approved for Official Creations.");
+      if (waiting) setNotice(waiting);
+      else setMessage(denied);
       return false;
     }
 
@@ -38,6 +53,7 @@ export function AuthPage() {
   async function handleGoogleSignIn() {
     setGoogleLoading(true);
     setMessage("");
+    setNotice("");
 
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -61,6 +77,7 @@ export function AuthPage() {
 
     setLoading(true);
     setMessage("");
+    setNotice("");
 
     try {
       const normalizedEmail = email.trim().toLowerCase();
@@ -69,13 +86,14 @@ export function AuthPage() {
         const { data, error } = await supabase.auth.signUp({
           email: normalizedEmail,
           password,
+          options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
         });
 
         if (error) throw error;
 
         if (!data.session) {
-          setMessage(
-            "If registration is permitted, check your email for a confirmation link before signing in.",
+          setNotice(
+            "Check your email and click the confirmation link. Your request then goes to the owner, and you can sign in once it is approved.",
           );
           return;
         }
@@ -113,13 +131,15 @@ export function AuthPage() {
           </>
         ) : (
           <>
-            Create your <span className="font-serif font-normal italic">account.</span>
+            Request <span className="font-serif font-normal italic">access.</span>
           </>
         )}
       </h1>
 
       <p className="mt-3 text-[15px] font-medium leading-[1.6] text-[#6B6566]">
-        Sign in with an email address approved for internal access.
+        {mode === "login"
+          ? "Sign in with an email address approved for internal access."
+          : "New accounts need the owner's approval before they can sign in."}
       </p>
 
       <button
@@ -171,7 +191,7 @@ export function AuthPage() {
           disabled={busy}
           className="mt-6 w-full cursor-pointer rounded-xl bg-[#111111] py-3.5 text-[15px] font-semibold text-white transition-colors duration-200 hover:bg-black disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading ? "Please wait..." : mode === "login" ? "Sign in" : "Create account"}
+          {loading ? "Please wait..." : mode === "login" ? "Sign in" : "Create account and request access"}
         </button>
       </form>
 
@@ -184,15 +204,25 @@ export function AuthPage() {
         </p>
       )}
 
+      {notice && (
+        <p
+          role="status"
+          className="mt-5 rounded-xl border border-[#D5CFD0] bg-[#F4EFEF] px-4 py-3 text-[13px] font-medium leading-[1.5] text-[#111111] [overflow-wrap:anywhere]"
+        >
+          {notice}
+        </p>
+      )}
+
       <button
         type="button"
         onClick={() => {
           setMode(mode === "login" ? "signup" : "login");
           setMessage("");
+          setNotice("");
         }}
         className="mt-6 cursor-pointer text-[13px] font-semibold text-[#6B6566] underline-offset-4 hover:text-[#111111] hover:underline"
       >
-        {mode === "login" ? "Need an account? Create one" : "Already have an account? Sign in"}
+        {mode === "login" ? "New here? Request access" : "Already approved? Sign in"}
       </button>
     </AuthShell>
   );

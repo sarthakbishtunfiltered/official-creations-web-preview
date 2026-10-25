@@ -26,6 +26,12 @@ interface Preview {
   created_at: string;
 }
 
+interface AccessRequest {
+  email: string;
+  status: "pending" | "rejected";
+  requested_at: string;
+}
+
 interface TeamMember {
   email: string;
   role: "owner" | "team_member";
@@ -186,6 +192,9 @@ export function DashboardPage() {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [previews, setPreviews] = useState<Preview[]>([]);
   const [team, setTeam] = useState<TeamMember[]>([]);
+  const [requests, setRequests] = useState<AccessRequest[]>([]);
+  // Set when the access_requests table or its functions are missing from the database.
+  const [requestsNote, setRequestsNote] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [search, setSearch] = useState("");
@@ -260,8 +269,24 @@ export function DashboardPage() {
         }
 
         setTeam((teamData || []) as TeamMember[]);
+
+        // A problem here (for example the SQL not being run yet) must not hide the rest of the dashboard.
+        const { data: requestData, error: requestError } = await supabase
+          .from("access_requests")
+          .select("email,status,requested_at")
+          .order("requested_at", { ascending: false });
+
+        if (requestError) {
+          setRequests([]);
+          setRequestsNote(requestError.message);
+        } else {
+          setRequests((requestData || []) as AccessRequest[]);
+          setRequestsNote("");
+        }
       } else {
         setTeam([]);
+        setRequests([]);
+        setRequestsNote("");
       }
     } catch (err: unknown) {
       console.error("Dashboard loading error:", err);
@@ -356,6 +381,34 @@ export function DashboardPage() {
       setNotice("Access revoked for " + email + ".");
     } catch (err: unknown) {
       console.error("Revoke teammate error:", err);
+      setError(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // The owner approves or turns down someone who asked for access.
+  async function decideRequest(email: string, decision: "approve" | "reject") {
+    if (!isOwner) return;
+
+    setBusy(true);
+    setError("");
+    setNotice("");
+
+    try {
+      const { error: decisionError } =
+        decision === "approve"
+          ? await supabase.rpc("approve_access_request", { p_email: email })
+          : await supabase.rpc("reject_access_request", { p_email: email });
+
+      if (decisionError) {
+        throw new Error((decision === "approve" ? "Approving request: " : "Rejecting request: ") + decisionError.message);
+      }
+
+      await loadDashboard();
+      setNotice(decision === "approve" ? "Access approved for " + email + "." : "Request from " + email + " declined.");
+    } catch (err: unknown) {
+      console.error("Access request error:", err);
       setError(errorMessage(err));
     } finally {
       setBusy(false);
@@ -517,13 +570,18 @@ export function DashboardPage() {
     }
   });
 
+  const pendingRequests = requests.filter((r) => r.status === "pending");
+
   const navItems: { id: Tab; label: string }[] = [
     { id: "overview", label: "Overview" },
     { id: "previews", label: "Website Previews" },
   ];
 
   if (isOwner) {
-    navItems.push({ id: "team", label: "Team Management" });
+    navItems.push({
+      id: "team",
+      label: pendingRequests.length > 0 ? `Team Management (${pendingRequests.length})` : "Team Management",
+    });
   }
 
   if (loading && previews.length === 0 && !error) {
@@ -619,6 +677,19 @@ export function DashboardPage() {
                 See who has opened their website preview, and who to contact today.
               </p>
             </div>
+
+            {isOwner && pendingRequests.length > 0 && (
+              <section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-300 bg-amber-50 px-5 py-4">
+                <p className="text-[14px] font-semibold text-amber-950">
+                  {pendingRequests.length === 1
+                    ? "1 person is waiting for access."
+                    : `${pendingRequests.length} people are waiting for access.`}
+                </p>
+                <button type="button" className={primaryButton} onClick={() => setActiveTab("team")}>
+                  Review requests
+                </button>
+              </section>
+            )}
 
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
               <StatCard label="Previews sent" value={stats.total} hint={`${stats.live} live now`} />
@@ -854,7 +925,62 @@ export function DashboardPage() {
             </div>
 
             <section className={cardClass}>
-              <form onSubmit={addTeamMember} className="flex flex-col gap-3 sm:flex-row">
+              <h3 className="text-[18px] font-bold">Access requests</h3>
+              <p className="mt-1 text-[13px] font-medium text-[#6B6566]">
+                People who created an account or signed in with Google and are waiting for your approval.
+              </p>
+
+              {requestsNote ? (
+                <p className="mt-4 rounded-xl border border-[#D5CFD0] bg-white px-4 py-3 text-[13px] font-medium leading-[1.6] text-[#6B6566] [overflow-wrap:anywhere]">
+                  Access requests aren&rsquo;t set up in the database yet. Run{" "}
+                  <span className="font-bold text-[#111111]">supabase/access-requests.sql</span> in the Supabase SQL
+                  Editor, then press Refresh. ({requestsNote})
+                </p>
+              ) : requests.length === 0 ? (
+                <p className="mt-4 text-[13px] font-medium text-[#6B6566]">No one is waiting.</p>
+              ) : (
+                <ul className="mt-4 flex flex-col gap-2">
+                  {requests.map((request) => (
+                    <li
+                      key={request.email}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#D5CFD0] bg-white p-3.5"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-[14px] font-bold">{request.email}</p>
+                        <p className="text-[12px] font-medium text-[#6B6566]">
+                          {request.status === "pending" ? "Waiting" : "Declined"} &middot; asked{" "}
+                          {timeAgo(request.requested_at)}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          className={primaryButton}
+                          disabled={busy}
+                          onClick={() => void decideRequest(request.email, "approve")}
+                        >
+                          Approve
+                        </button>
+                        {request.status === "pending" && (
+                          <button
+                            type="button"
+                            className={dangerButton}
+                            disabled={busy}
+                            onClick={() => void decideRequest(request.email, "reject")}
+                          >
+                            Reject
+                          </button>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            <section className={cardClass}>
+              <h3 className="text-[18px] font-bold">Approve an email in advance</h3>
+              <form onSubmit={addTeamMember} className="mt-4 flex flex-col gap-3 sm:flex-row">
                 <label htmlFor="new-member" className="sr-only">
                   Teammate email address
                 </label>
