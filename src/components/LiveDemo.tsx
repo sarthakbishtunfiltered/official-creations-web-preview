@@ -6,7 +6,7 @@ import { coreFields, getGroups, nicheOwnedKeys } from "../data/fields";
 import type { Group } from "../data/fields";
 import { designs, getNiche } from "../data/niches";
 import type { Design } from "../data/niches";
-import { editIdFromLocation, loadPreviewForm, previewUrl, savePreview } from "../lib/previewStore";
+import { editIdFromLocation, loadFormForEdit, localPreviewUrl, savePreview } from "../lib/previewStore";
 import { buildSiteData, countFilled, validate } from "../lib/siteData";
 import type { FieldValue, FormState, SiteData } from "../lib/siteData";
 import { useTeamAccess } from "../lib/useTeamAccess";
@@ -17,12 +17,6 @@ import { TeamGate } from "./TeamGate";
 import { templates } from "../templates/registry";
 
 const emptyForm: FormState = { niche: "", design: "simple", values: {} };
-
-// Opened from a preview's "Edit details" button (/?edit=<id>): start with that form filled in.
-function startingForm(): FormState {
-  const id = editIdFromLocation();
-  return (id ? loadPreviewForm(id) : null) ?? emptyForm;
-}
 
 function StepBadge({ n }: { n: number }) {
   return (
@@ -46,7 +40,14 @@ function focusFirstInvalid(errors: Record<string, string>) {
 
 export function LiveDemo() {
   const access = useTeamAccess();
-  const [form, setForm] = useState<FormState>(startingForm);
+  const [form, setForm] = useState<FormState>(emptyForm);
+  // Opened from a preview's "Edit details" button (/?edit=<link code>): that preview is loaded
+  // into the form, and generating again updates the same link.
+  const [pendingEdit] = useState(editIdFromLocation);
+  const [linkToken, setLinkToken] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const editLoaded = useRef(false);
   const [showErrors, setShowErrors] = useState(false);
   const [result, setResult] = useState<SiteData | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
@@ -66,6 +67,23 @@ export function LiveDemo() {
     window.history.replaceState(null, "", window.location.pathname);
     document.getElementById("live-demo")?.scrollIntoView({ block: "start" });
   }, []);
+
+  useEffect(() => {
+    if (!pendingEdit || access.status !== "approved" || editLoaded.current) return;
+    editLoaded.current = true;
+    loadFormForEdit(pendingEdit)
+      .then((saved) => {
+        if (saved) {
+          setForm(saved);
+          setLinkToken(pendingEdit);
+        } else {
+          setSaveError("That preview could not be found, so the form is empty.");
+        }
+      })
+      .catch((error: unknown) => {
+        setSaveError(error instanceof Error ? error.message : "That preview could not be loaded.");
+      });
+  }, [pendingEdit, access.status]);
 
   function setValue(key: string, value: FieldValue) {
     setForm((prev) => ({ ...prev, values: { ...prev.values, [key]: value } }));
@@ -90,21 +108,42 @@ export function LiveDemo() {
     setForm((prev) => ({ ...prev, design }));
   }
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (saving) return;
     if (Object.keys(errors).length > 0) {
       setShowErrors(true);
       focusFirstInvalid(errors);
       return;
     }
     const data = buildSiteData(form);
-    // Open the finished site in its own tab. This runs inside the click, so pop-up blockers allow it.
-    let id: string | null = null;
-    if (templates[data.niche]?.[data.design]) {
-      id = savePreview(form);
-      if (id) window.open(previewUrl(id), "_blank");
+
+    // A design that isn't built yet has nothing to link to.
+    if (!templates[data.niche]?.[data.design]) {
+      setSaveError("");
+      setPreviewId(null);
+      setResult(data);
+      return;
     }
-    setPreviewId(id);
+
+    setSaving(true);
+    setSaveError("");
+    // The tab is opened now, inside the click, so pop-up blockers allow it. It is pointed at the
+    // preview once the preview is saved.
+    const tab = window.open("", "_blank");
+    try {
+      const token = await savePreview(form, linkToken);
+      setLinkToken(token);
+      setPreviewId(token);
+      if (tab) tab.location.href = localPreviewUrl(token);
+    } catch (error) {
+      tab?.close();
+      setSaveError(error instanceof Error ? error.message : "The preview could not be saved.");
+      // Still show the website here on the page, so the work isn't lost.
+      setPreviewId(null);
+    } finally {
+      setSaving(false);
+    }
     setResult(data);
   }
 
@@ -113,6 +152,8 @@ export function LiveDemo() {
     setShowErrors(false);
     setResult(null);
     setPreviewId(null);
+    setLinkToken(null);
+    setSaveError("");
   }
 
   function renderGroup(group: Group) {
@@ -299,12 +340,18 @@ export function LiveDemo() {
               )}
 
               <div className="flex flex-col gap-3">
+                {saveError && (
+                  <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] font-medium leading-[1.5] text-red-800 [overflow-wrap:anywhere]">
+                    {saveError}
+                  </p>
+                )}
                 <button
                   type="submit"
-                  className="flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl bg-[#111111] py-3.5 text-[15px] font-semibold text-white transition-colors duration-200 hover:bg-black"
+                  disabled={saving}
+                  className="flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl bg-[#111111] py-3.5 text-[15px] font-semibold text-white transition-colors duration-200 hover:bg-black disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Generate my preview
-                  <ArrowRight className="h-4 w-4" />
+                  {saving ? "Creating your link..." : linkToken ? "Update my preview" : "Generate my preview"}
+                  {!saving && <ArrowRight className="h-4 w-4" />}
                 </button>
                 <button
                   type="button"

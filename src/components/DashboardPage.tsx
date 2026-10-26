@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { getNiche } from "../data/niches";
-import { previewUrl } from "../lib/previewStore";
+import { designs, getNiche } from "../data/niches";
+import { localPreviewUrl, previewUrl } from "../lib/previewStore";
 import { supabase } from "../lib/supabase";
 
 type PreviewStatus =
@@ -15,8 +15,12 @@ type PreviewStatus =
 
 interface Preview {
   id: string;
+  // The secret part of the preview link.
+  link_token: string;
   business_name: string | null;
   niche: string | null;
+  design: string | null;
+  created_by_email: string | null;
   status: PreviewStatus;
   is_active: boolean;
   expires_at: string;
@@ -130,6 +134,11 @@ function isClosed(preview: Preview): boolean {
 function nicheLabel(preview: Preview): string {
   if (!preview.niche) return "Unspecified niche";
   return getNiche(preview.niche)?.label ?? preview.niche;
+}
+
+function designLabel(preview: Preview): string {
+  if (!preview.design) return "";
+  return designs.find((d) => d.id === preview.design)?.label ?? preview.design;
 }
 
 function StatCard({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
@@ -248,12 +257,15 @@ export function DashboardPage() {
       const { data: previewData, error: previewError } = await supabase
         .from("previews")
         .select(
-          "id,business_name,niche,status,is_active,expires_at,total_views,first_viewed_at,last_viewed_at,created_at",
+          "id,link_token,business_name,niche,design,created_by_email,status,is_active,expires_at,total_views,first_viewed_at,last_viewed_at,created_at",
         )
         .order("created_at", { ascending: false });
 
       if (previewError) {
-        throw new Error("Loading previews: " + previewError.message);
+        const missing = /link_token|created_by_email|design/.test(previewError.message)
+          ? " Run supabase/preview-links.sql in the Supabase SQL Editor, then press Refresh."
+          : "";
+        throw new Error("Loading previews: " + previewError.message + missing);
       }
 
       setPreviews((previewData || []) as Preview[]);
@@ -479,7 +491,7 @@ export function DashboardPage() {
 
   async function copyLink(preview: Preview) {
     try {
-      await navigator.clipboard.writeText(previewUrl(preview.id));
+      await navigator.clipboard.writeText(previewUrl(preview.link_token));
       setError("");
       setNotice("Link copied. Paste it into WhatsApp or email.");
     } catch {
@@ -703,8 +715,8 @@ export function DashboardPage() {
               <section className={cardClass}>
                 <h3 className="text-[18px] font-bold">No previews yet</h3>
                 <p className="mt-2 max-w-xl text-[14px] font-medium leading-[1.6] text-[#6B6566]">
-                  Nothing has been saved to Supabase yet. Previews you generate on the homepage are still kept in the
-                  browser only, so they will show up here once the generator is connected to the database.
+                  Nothing has been saved yet. Generate a preview on the homepage and it will show up here, with its link
+                  and what the client does with it.
                 </p>
               </section>
             ) : (
@@ -827,7 +839,7 @@ export function DashboardPage() {
             {previews.length === 0 ? (
               <section className={cardClass}>
                 <p className="text-[14px] font-medium leading-[1.6] text-[#6B6566]">
-                  No database previews yet. The generator still needs to be connected to Supabase.
+                  No previews yet. Generate one on the homepage and it will appear here.
                 </p>
               </section>
             ) : visiblePreviews.length === 0 ? (
@@ -843,9 +855,13 @@ export function DashboardPage() {
                   >
                     <div className="min-w-0 xl:w-[24%]">
                       <p className="truncate text-[16px] font-bold">{preview.business_name || "Untitled business"}</p>
-                      <p className="mt-1 text-[12px] font-medium text-[#6B6566]">{nicheLabel(preview)}</p>
+                      <p className="mt-1 text-[12px] font-medium text-[#6B6566]">
+                        {nicheLabel(preview)}
+                        {designLabel(preview) && ` \u00b7 ${designLabel(preview)}`}
+                      </p>
                       <p className="mt-0.5 text-[12px] font-medium text-[#6B6566]">
                         Created {formatDate(preview.created_at)}
+                        {preview.created_by_email && ` by ${preview.created_by_email}`}
                       </p>
                     </div>
 
@@ -881,7 +897,7 @@ export function DashboardPage() {
 
                     <div className="flex flex-wrap gap-2 xl:flex-1 xl:justify-end">
                       <a
-                        href={previewUrl(preview.id)}
+                        href={localPreviewUrl(preview.link_token)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={`${quietButton} inline-block`}

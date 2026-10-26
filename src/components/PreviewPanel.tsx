@@ -1,6 +1,8 @@
+import { useState } from "react";
+import type { FocusEvent } from "react";
 import { ArrowRight, Monitor, Smartphone, Zap } from "lucide-react";
 import { designs } from "../data/niches";
-import { previewUrl } from "../lib/previewStore";
+import { localPreviewUrl, previewUrl } from "../lib/previewStore";
 import type { SiteData } from "../lib/siteData";
 import { templates } from "../templates/registry";
 
@@ -12,11 +14,23 @@ const emptyPoints = [
 
 interface PreviewPanelProps {
   data: SiteData | null;
-  // Set when the preview was stored and opened in its own tab; null if storing failed.
+  // The preview's link code once it is saved; null if saving failed.
   previewId: string | null;
 }
 
 export function PreviewPanel({ data, previewId }: PreviewPanelProps) {
+  const [copied, setCopied] = useState(false);
+
+  async function copyLink(token: string) {
+    try {
+      await navigator.clipboard.writeText(previewUrl(token));
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2500);
+    } catch {
+      setCopied(false);
+    }
+  }
+
   if (!data) {
     return (
       <div className="flex flex-col gap-8 p-7 sm:p-8">
@@ -82,18 +96,39 @@ export function PreviewPanel({ data, previewId }: PreviewPanelProps) {
               {data.businessName} · {data.nicheLabel} · {designLabel}
             </p>
             <p className="mt-1 text-[13px] font-medium leading-relaxed text-[#6B6566]">
-              The preview opens in its own tab. If nothing opened, your browser blocked the pop-up, so use the button.
+              Send this link to the client. It works on any device for 7 days. If the preview didn&rsquo;t open, your
+              browser blocked the pop-up, so use the button.
             </p>
           </div>
-          <a
-            href={previewUrl(previewId)}
-            target="_blank"
-            rel="noopener"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#111111] px-5 py-3 text-[14px] font-semibold text-white transition-colors duration-200 hover:bg-black"
-          >
-            Open preview in a new tab
-            <ArrowRight className="h-4 w-4" />
-          </a>
+          <input
+            readOnly
+            value={previewUrl(previewId)}
+            aria-label="Preview link"
+            onFocus={(event: FocusEvent<HTMLInputElement>) => event.currentTarget.select()}
+            className="w-full rounded-xl border border-[#D5CFD0] bg-white px-4 py-3 text-[13px] font-medium text-[#111111]"
+          />
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => void copyLink(previewId)}
+              className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[#D5CFD0] bg-white px-5 py-3 text-[14px] font-semibold text-[#111111] transition-colors duration-200 hover:bg-[#F4EFEF]"
+            >
+              {copied ? "Link copied" : "Copy link"}
+            </button>
+            <a
+              href={localPreviewUrl(previewId)}
+              target="_blank"
+              rel="noopener"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#111111] px-5 py-3 text-[14px] font-semibold text-white transition-colors duration-200 hover:bg-black"
+            >
+              Open preview in a new tab
+              <ArrowRight className="h-4 w-4" />
+            </a>
+          </div>
+          <p className="text-[12px] font-medium text-[#6B6566]">
+            Changing the form and pressing &ldquo;Update my preview&rdquo; updates this same link. Press &ldquo;Clear the
+            form&rdquo; to start a new one.
+          </p>
         </div>
       ) : Template ? (
         <div className="overflow-hidden rounded-2xl border border-[#D5CFD0] bg-white">

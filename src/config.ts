@@ -8,4 +8,7 @@ export const siteConfig = {
   pricingHref: "",
   // Where "Login" should go. Shows the Login button in the homepage header.
   loginHref: "/login",
+  // The address clients open preview links at, e.g. "https://preview.yourdomain.com".
+  // Leave empty to use the address this page is open at (fine for testing).
+  publicUrl: "",
 };
