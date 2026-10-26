@@ -6,6 +6,9 @@ export const siteConfig = {
   whatsappNumber: "",
   // Where "See pricing" should go, e.g. "#pricing" or a full URL.
   pricingHref: "",
-  // Where "Login" should go, e.g. "/login". Leave empty until teammate accounts exist.
-  loginHref: "",
+  // Where "Login" should go. Shows the Login button in the homepage header.
+  loginHref: "/login",
+  // The address clients open preview links at, e.g. "https://preview.yourdomain.com".
+  // Leave empty to use the address this page is open at (fine for testing).
+  publicUrl: "",
 };

@@ -1,90 +1,148 @@
+import { siteConfig } from "../config";
 import { designs, getNiche } from "../data/niches";
-import type { SiteData } from "./siteData";
+import { buildSiteData } from "./siteData";
+import type { FormState, SiteData } from "./siteData";
+import { supabase } from "./supabase";
 
-// A preview opens in its own browser tab, so the generated site data is handed over through
-// localStorage (shared by every tab of this site). Only the last few previews are kept.
-const PREFIX = "oc-preview:";
-const INDEX = "oc-preview-ids";
-const KEEP = 5;
+// Previews live in the Supabase "previews" table. Each one has a long random link code, and
+// the link a client opens is "/?preview=<code>". Only signed-in team members can create or edit
+// a preview; anyone with the code can open it while it is active and not expired.
 
-function readIds(): string[] {
-  try {
-    const parsed: unknown = JSON.parse(localStorage.getItem(INDEX) ?? "[]");
-    return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === "string") : [];
-  } catch {
-    return [];
-  }
+// Photos travel inside the preview for now, so keep the whole thing to a sensible size.
+const MAX_FORM_CHARS = 4_000_000;
+
+function messageOf(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "object" && error !== null && "message" in error) return String(error.message);
+  return String(error);
 }
 
-function newId(): string {
-  return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-}
-
-// Stores the preview and returns its id, or null if the browser won't store it
-// (private mode, or the images are too big for the storage limit).
-export function savePreview(data: SiteData): string | null {
-  const json = JSON.stringify(data);
-  const attempt = (): string | null => {
-    const id = newId();
-    localStorage.setItem(PREFIX + id, json);
-    const ids = [...readIds(), id];
-    while (ids.length > KEEP) {
-      const old = ids.shift();
-      if (old) localStorage.removeItem(PREFIX + old);
-    }
-    localStorage.setItem(INDEX, JSON.stringify(ids));
-    return id;
-  };
-  try {
-    return attempt();
-  } catch {
-    // Probably full: drop the older previews and try once more.
-    try {
-      for (const old of readIds()) localStorage.removeItem(PREFIX + old);
-      localStorage.removeItem(INDEX);
-      return attempt();
-    } catch {
-      return null;
-    }
-  }
-}
-
-function isText(v: unknown): v is string {
-  return typeof v === "string";
-}
-
-function isSiteData(v: unknown): v is SiteData {
+function isFormState(v: unknown): v is FormState {
   if (typeof v !== "object" || v === null) return false;
   const o = v as Record<string, unknown>;
-  const fields = o["fields"];
+  const values = o["values"];
   return (
-    isText(o["niche"]) &&
+    typeof o["niche"] === "string" &&
     getNiche(o["niche"]) !== undefined &&
-    isText(o["design"]) &&
+    typeof o["design"] === "string" &&
     designs.some((d) => d.id === o["design"]) &&
-    ["businessName", "ownerName", "phone", "whatsapp", "city", "tagline", "about", "brandColor"].every((k) => isText(o[k])) &&
-    typeof fields === "object" &&
-    fields !== null
+    typeof values === "object" &&
+    values !== null &&
+    !Array.isArray(values)
   );
 }
 
-export function loadPreview(id: string): SiteData | null {
+// Saves a new preview, or updates the one with this link code. Returns the link code.
+// Throws a readable message if it can't be saved.
+export async function savePreview(form: FormState, token: string | null = null): Promise<string> {
+  if (JSON.stringify(form).length > MAX_FORM_CHARS) {
+    throw new Error("The photos are too large to save. Use smaller photos, or paste image links instead.");
+  }
+
+  const { data, error } = await supabase.rpc("save_preview", { p_form: form, p_token: token });
+
+  if (error) throw new Error(messageOf(error));
+
+  const saved = typeof data === "object" && data !== null ? (data as Record<string, unknown>)["token"] : null;
+
+  if (typeof saved !== "string" || saved === "") {
+    throw new Error("The preview could not be saved. Please try again.");
+  }
+
+  return saved;
+}
+
+// Team only: the form as it was saved, for "Edit details".
+export async function loadFormForEdit(token: string): Promise<FormState | null> {
+  const { data, error } = await supabase.rpc("get_preview_form", { p_token: token });
+
+  if (error) throw new Error(messageOf(error));
+
+  return isFormState(data) ? data : null;
+}
+
+export type PublicPreview =
+  | { status: "ok"; data: SiteData; live: boolean }
+  | { status: "expired"; businessName: string }
+  | { status: "disabled"; businessName: string }
+  | { status: "not_found" }
+  | { status: "error"; message: string };
+
+// What a visitor gets when they open a link. count=false is used for the Tablet and Phone
+// frames, so one visit is not counted several times.
+export async function loadPublicPreview(token: string, count: boolean): Promise<PublicPreview> {
   try {
-    const parsed: unknown = JSON.parse(localStorage.getItem(PREFIX + id) ?? "null");
-    return isSiteData(parsed) ? parsed : null;
-  } catch {
-    return null;
+    const { data, error } = await supabase.rpc("get_public_preview", { p_token: token, p_count: count });
+
+    if (error) throw error;
+
+    const result = typeof data === "object" && data !== null ? (data as Record<string, unknown>) : {};
+    const status = result["status"];
+    const businessName = typeof result["business_name"] === "string" ? result["business_name"] : "";
+
+    if (status === "ok") {
+      const form = result["form"];
+      if (!isFormState(form)) return { status: "not_found" };
+      return { status: "ok", data: buildSiteData(form), live: result["live"] !== false };
+    }
+
+    if (status === "expired") return { status: "expired", businessName };
+    if (status === "disabled") return { status: "disabled", businessName };
+
+    return { status: "not_found" };
+  } catch (error) {
+    return { status: "error", message: messageOf(error) };
   }
 }
 
-export function previewUrl(id: string): string {
+// ---- Links -------------------------------------------------------------------------------
+
+function currentSiteUrl(): URL {
   const url = new URL(window.location.href);
+  url.pathname = "/";
   url.search = "";
   url.hash = "";
-  url.searchParams.set("preview", id);
+  return url;
+}
+
+function withParam(base: URL, key: string, value: string): string {
+  base.searchParams.set(key, value);
+  return base.toString();
+}
+
+// The link to send a client: on the public address if one is set, otherwise the current one.
+export function previewUrl(token: string): string {
+  let base = currentSiteUrl();
+  if (siteConfig.publicUrl) {
+    try {
+      base = new URL(siteConfig.publicUrl);
+      base.pathname = "/";
+      base.search = "";
+      base.hash = "";
+    } catch {
+      base = currentSiteUrl();
+    }
+  }
+  return withParam(base, "preview", token);
+}
+
+// The same preview on the address this page is open at: what the team opens themselves.
+export function localPreviewUrl(token: string): string {
+  return withParam(currentSiteUrl(), "preview", token);
+}
+
+// The generator page with the form filled in from a saved preview.
+export function editUrl(token: string): string {
+  const url = currentSiteUrl();
+  url.searchParams.set("edit", token);
+  url.hash = "live-demo";
   return url.toString();
 }
 
 export function previewIdFromLocation(): string | null {
   return new URLSearchParams(window.location.search).get("preview") || null;
+}
+
+export function editIdFromLocation(): string | null {
+  return new URLSearchParams(window.location.search).get("edit") || null;
 }

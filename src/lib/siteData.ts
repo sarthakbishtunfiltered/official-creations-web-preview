@@ -1,6 +1,6 @@
 import { getNiche } from "../data/niches";
 import type { Design, Family, NicheId } from "../data/niches";
-import { TOP_LEVEL_KEYS, fieldsFor } from "../data/fields";
+import { TOP_LEVEL_KEYS, fieldsFor, fontStyleOptions } from "../data/fields";
 import type { FieldDef } from "../data/fields";
 
 // One row inside a list field (a project, a service, a menu item ...).
@@ -34,6 +34,8 @@ export interface SiteData {
   tagline: string;
   about: string;
   brandColor: string;
+  // "modern", "classic" or "bold": which font look the template should use.
+  fontStyle: string;
   logo: string;
   heroImage: string;
   // Everything else that was filled in. Blank fields are left out, so a
@@ -145,6 +147,8 @@ export function buildSiteData(state: FormState): SiteData {
   const phone = get("phone");
   const city = get("city");
   const color = get("brandColor");
+  const chosenFont = get("fontStyle").toLowerCase();
+  const fontStyle = fontStyleOptions.some((o) => o.toLowerCase() === chosenFont) ? chosenFont : "modern";
 
   return {
     niche: niche.id,
@@ -162,6 +166,7 @@ export function buildSiteData(state: FormState): SiteData {
       get("about") ||
       `${businessName} is based in ${city} and led by ${ownerName}. Get in touch to talk about what you need.`,
     brandColor: /^#[0-9a-f]{6}$/i.test(color) ? color : DEFAULT_BRAND_COLOR,
+    fontStyle: fontStyle,
     logo: get("logo"),
     heroImage: get("heroImage"),
     fields,

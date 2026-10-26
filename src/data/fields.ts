@@ -53,6 +53,9 @@ export const coreFields: FieldDef[] = [
   { key: "city", label: "City", type: "text", required: true, placeholder: "e.g. Ahmedabad" },
 ];
 
+// The font looks a template can use. Blank means Modern.
+export const fontStyleOptions: string[] = ["Modern", "Classic", "Bold"];
+
 // ---------------------------------------------------------------------------
 // Group 1: contact, logo, colours and words
 // ---------------------------------------------------------------------------
@@ -67,6 +70,13 @@ const lookBlock: Block = {
     { key: "address", label: "Full address", type: "textarea", placeholder: "Leave blank to show only the city" },
     { key: "logo", label: "Logo", type: "image", maxDim: 800, help: "Leave blank to show the business name as text." },
     { key: "brandColor", label: "Brand color", type: "color", help: "Leave unset to use the niche's default color." },
+    {
+      key: "fontStyle",
+      label: "Font style",
+      type: "select",
+      options: fontStyleOptions,
+      help: "Modern is the default. Classic uses a serif for headings. Bold is heavier and tighter.",
+    },
     { key: "tagline", label: "Tagline", type: "text", placeholder: "Leave blank for a default line" },
     {
       key: "about",
@@ -116,6 +126,19 @@ const familyBlocks: Record<Family, Block[]> = {
             { key: "price", label: "Starting from (optional)", type: "text" },
           ],
         },
+        {
+          key: "processSteps",
+          label: "How we work (steps)",
+          type: "list",
+          max: 5,
+          itemName: "step",
+          fields: [
+            { key: "title", label: "Step name", type: "text" },
+            { key: "description", label: "Short description", type: "text" },
+          ],
+          help: "Leave empty to show a standard four-step process.",
+        },
+        { key: "openingHours", label: "Opening hours", type: "textarea", placeholder: "e.g. Mon-Sat, 10 am to 7 pm" },
         { key: "enquiryForm", label: "Show an enquiry form", type: "toggle" },
       ],
     },
@@ -405,7 +428,19 @@ function moreBlocks(id: NicheId | ""): Block[] {
       fields: [
         { key: "email", label: "Email", type: "email" },
         { key: "secondPhone", label: "Second phone number", type: "tel" },
-        { key: "mapsLink", label: "Google Maps link", type: "url" },
+        {
+          key: "mapsLink",
+          label: "Google Maps link",
+          type: "url",
+          help: "Paste the full link from the browser address bar to show that exact spot on the map. Short links only work for the Open in Maps button.",
+        },
+        {
+          key: "mapEmbed",
+          label: "Google Maps embed code (for the map)",
+          type: "text",
+          placeholder: "Paste the embed code or link",
+          help: "Optional. In Google Maps: Share, then Embed a map, then copy. Leave blank to use the address.",
+        },
         { key: "instagram", label: "Instagram link", type: "url" },
         { key: "facebook", label: "Facebook link", type: "url" },
         { key: "youtube", label: "YouTube link", type: "url" },
