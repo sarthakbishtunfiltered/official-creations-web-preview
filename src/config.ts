@@ -10,5 +10,5 @@ export const siteConfig = {
   loginHref: "/login",
   // The address clients open preview links at, e.g. "https://preview.yourdomain.com".
   // Leave empty to use the address this page is open at (fine for testing).
-  publicUrl: "",
+  publicUrl: "https://studio.officialcreations.online",
 };
