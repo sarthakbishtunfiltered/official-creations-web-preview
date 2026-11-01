@@ -3,7 +3,7 @@
 export const siteConfig = {
   // Your WhatsApp number with country code, digits only, e.g. "919876543210".
   // Turns on the "Book a call" button (opens WhatsApp).
-  whatsappNumber: "",
+  whatsappNumber: "919711925052",
   // Where "See pricing" should go, e.g. "#pricing" or a full URL.
   pricingHref: "",
   // Where "Login" should go. Shows the Login button in the homepage header.

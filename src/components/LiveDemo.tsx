@@ -6,10 +6,12 @@ import { coreFields, getGroups, nicheOwnedKeys } from "../data/fields";
 import type { Group } from "../data/fields";
 import { designs, getNiche } from "../data/niches";
 import type { Design } from "../data/niches";
+import { getLead, leadIdFromLocation, updateLead } from "../lib/leads";
+import type { Lead } from "../lib/leads";
 import { editIdFromLocation, loadFormForEdit, localPreviewUrl, savePreview } from "../lib/previewStore";
 import { buildSiteData, countFilled, validate } from "../lib/siteData";
 import type { FieldValue, FormState, SiteData } from "../lib/siteData";
-import { useTeamAccess } from "../lib/useTeamAccess";
+import type { TeamAccess } from "../lib/useTeamAccess";
 import { FieldControl, labelClass } from "./form/Field";
 import { NicheSelect } from "./form/NicheSelect";
 import { PreviewPanel } from "./PreviewPanel";
@@ -38,8 +40,7 @@ function focusFirstInvalid(errors: Record<string, string>) {
   }
 }
 
-export function LiveDemo() {
-  const access = useTeamAccess();
+export function LiveDemo({ access }: { access: TeamAccess }) {
   const [form, setForm] = useState<FormState>(emptyForm);
   // Opened from a preview's "Edit details" button (/?edit=<link code>): that preview is loaded
   // into the form, and generating again updates the same link.
@@ -48,6 +49,11 @@ export function LiveDemo() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const editLoaded = useRef(false);
+  // Opened from a lead in the dashboard (/?lead=<id>): the form starts filled in from that lead,
+  // and the preview made here is attached to it.
+  const [leadId, setLeadId] = useState<string | null>(leadIdFromLocation);
+  const [lead, setLead] = useState<Lead | null>(null);
+  const leadLoaded = useRef(false);
   const [showErrors, setShowErrors] = useState(false);
   const [result, setResult] = useState<SiteData | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
@@ -67,6 +73,54 @@ export function LiveDemo() {
     window.history.replaceState(null, "", window.location.pathname);
     document.getElementById("live-demo")?.scrollIntoView({ block: "start" });
   }, []);
+
+  // Coming from a lead: drop ?lead= from the address bar and show the form.
+  useEffect(() => {
+    if (!leadIdFromLocation()) return;
+    window.history.replaceState(null, "", window.location.pathname);
+    document.getElementById("live-demo")?.scrollIntoView({ block: "start" });
+  }, []);
+
+  useEffect(() => {
+    if (!leadId || pendingEdit || access.status !== "approved" || leadLoaded.current) return;
+    leadLoaded.current = true;
+    getLead(leadId)
+      .then((found) => {
+        if (!found) {
+          setSaveError("That lead could not be found, so the form is empty.");
+          setLeadId(null);
+          return;
+        }
+        const niche = getNiche(found.niche)?.id ?? "";
+        setLead(found);
+        const fromLead: FormState = {
+          niche,
+          design: found.design === "premium" ? "premium" : "simple",
+          values: {
+            businessName: found.business_name,
+            ownerName: found.name,
+            phone: found.phone,
+            city: found.city,
+          },
+        };
+        setForm(fromLead);
+
+        // A lead that already has a preview reopens that preview, so the work isn't overwritten
+        // with a blank form, and generating again updates the same link.
+        const token = found.preview_token;
+        if (!token) return;
+        return loadFormForEdit(token).then((saved) => {
+          if (saved) {
+            setForm(saved);
+            setLinkToken(token);
+          }
+        });
+      })
+      .catch((error: unknown) => {
+        setSaveError(error instanceof Error ? error.message : "That lead could not be loaded.");
+        setLeadId(null);
+      });
+  }, [leadId, pendingEdit, access.status]);
 
   useEffect(() => {
     if (!pendingEdit || access.status !== "approved" || editLoaded.current) return;
@@ -135,6 +189,14 @@ export function LiveDemo() {
       const token = await savePreview(form, linkToken);
       setLinkToken(token);
       setPreviewId(token);
+      // Tie the preview to the lead it was made for. A problem here must not lose the preview.
+      if (leadId && lead?.preview_token !== token) {
+        updateLead(leadId, { preview_token: token })
+          .then((updated) => setLead(updated))
+          .catch(() => {
+            setSaveError("The preview was created, but it could not be attached to the lead. Copy its link by hand.");
+          });
+      }
       if (tab) tab.location.href = localPreviewUrl(token);
     } catch (error) {
       tab?.close();
@@ -154,6 +216,8 @@ export function LiveDemo() {
     setPreviewId(null);
     setLinkToken(null);
     setSaveError("");
+    setLeadId(null);
+    setLead(null);
   }
 
   function renderGroup(group: Group) {
@@ -249,6 +313,30 @@ export function LiveDemo() {
                 Open dashboard
               </a>
             </p>
+            {lead && (
+              <section className="mb-4 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-[13px] font-medium leading-[1.6] text-amber-950">
+                <p className="text-[12px] font-bold uppercase tracking-[0.1em]">
+                  From a lead · {lead.kind === "sample" ? "Sample request" : "Order request"}
+                </p>
+                <p className="mt-1 [overflow-wrap:anywhere]">
+                  {lead.name} · {lead.phone}
+                  {lead.email ? ` · ${lead.email}` : ""}
+                </p>
+                {(lead.budget || lead.timeline) && (
+                  <p>
+                    {[lead.budget && `Budget: ${lead.budget}`, lead.timeline && `Timeline: ${lead.timeline}`]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                )}
+                {lead.details && <p className="mt-1 whitespace-pre-line [overflow-wrap:anywhere]">{lead.details}</p>}
+                <p className="mt-2">
+                  <a href="/dashboard" className="font-semibold underline underline-offset-4">
+                    Back to the dashboard
+                  </a>
+                </p>
+              </section>
+            )}
             <form
               noValidate
               autoComplete="off"

@@ -5,14 +5,13 @@ import { BuiltDifferent } from "./components/BuiltDifferent";
 import { SupportedNiches } from "./components/SupportedNiches";
 import { LiveDemo } from "./components/LiveDemo";
 import { ProfileMenu } from "./components/ProfileMenu";
-import { useTeamAccess } from "./lib/useTeamAccess";
+import type { TeamAccess } from "./lib/useTeamAccess";
 import { siteConfig } from "./config";
 
 const whatsappDigits = siteConfig.whatsappNumber.replace(/\D/g, "");
 
-function App() {
-  const access = useTeamAccess();
-
+// The team's homepage with the website generator. Home.tsx decides who sees it.
+function App({ access }: { access: TeamAccess }) {
   return (
     <div className="min-h-screen bg-[#EAE4E5] flex flex-col font-sans overflow-x-hidden">
       {/* Navigation Bar */}
@@ -150,7 +149,7 @@ function App() {
       <SupportedNiches />
 
       {/* Section 4: Live Demo */}
-      <LiveDemo />
+      <LiveDemo access={access} />
     </div>
   );
 }

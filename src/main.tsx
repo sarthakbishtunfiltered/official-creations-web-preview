@@ -9,7 +9,7 @@ Routes,
 
 import "./index.css";
 
-import App from "./App.tsx";
+import { Home } from "./components/Home";
 import { AuthPage } from "./components/AuthPage";
 import { AuthCallback } from "./components/AuthCallback";
 import { DashboardPage } from "./components/DashboardPage";
@@ -26,9 +26,8 @@ return <PreviewPage id={previewId} />;
 }
 
 return ( <BrowserRouter> <Routes>
-<Route path="/" element={<App />} />
+<Route path="/" element={<Home />} />
 
-```
     <Route path="/login" element={<AuthPage />} />
 
     <Route path="/auth/callback" element={<AuthCallback />} />
@@ -45,7 +44,6 @@ return ( <BrowserRouter> <Routes>
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes>
 </BrowserRouter>
-
 );
 }
 

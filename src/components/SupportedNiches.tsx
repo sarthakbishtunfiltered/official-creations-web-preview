@@ -28,7 +28,11 @@ const featureCards = [
   },
 ];
 
-export function SupportedNiches() {
+export function SupportedNiches({
+  subtitle = "Choose the industry and get a personalized website preview in seconds.",
+}: {
+  subtitle?: string;
+}) {
   return (
     <section className="w-full border-t border-[#D5CFD0]/40">
       {/* Header — contained */}
@@ -53,8 +57,7 @@ export function SupportedNiches() {
               </span>
             </h2>
             <p className="mt-4 text-[17px] sm:text-[19px] text-[#6B6566] leading-[1.5] font-medium max-w-2xl">
-              Choose the industry and get a personalized website preview in
-              seconds.
+              {subtitle}
             </p>
           </motion.div>
 

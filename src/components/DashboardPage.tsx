@@ -2,8 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { designs, getNiche } from "../data/niches";
+import { listLeads } from "../lib/leads";
+import type { Lead } from "../lib/leads";
 import { localPreviewUrl, previewUrl } from "../lib/previewStore";
 import { supabase } from "../lib/supabase";
+import { LeadsPanel } from "./LeadsPanel";
 
 type PreviewStatus =
   | "preview_created"
@@ -63,7 +66,7 @@ const STATUS_TONE: Record<PreviewStatus, string> = {
   client_lost: "bg-red-100 text-red-900",
 };
 
-type Tab = "overview" | "previews" | "team";
+type Tab = "overview" | "leads" | "previews" | "team";
 type Filter = "all" | "opened" | "not_opened" | "expiring" | "expired" | "closed";
 
 const HOUR = 3_600_000;
@@ -202,6 +205,9 @@ export function DashboardPage() {
   const [previews, setPreviews] = useState<Preview[]>([]);
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [requests, setRequests] = useState<AccessRequest[]>([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  // Set when the leads table or its functions are missing from the database.
+  const [leadsNote, setLeadsNote] = useState("");
   // Set when the access_requests table or its functions are missing from the database.
   const [requestsNote, setRequestsNote] = useState("");
   const [newEmail, setNewEmail] = useState("");
@@ -269,6 +275,15 @@ export function DashboardPage() {
       }
 
       setPreviews((previewData || []) as Preview[]);
+
+      // A problem here (for example the SQL not being run yet) must not hide the rest of the dashboard.
+      try {
+        setLeads(await listLeads());
+        setLeadsNote("");
+      } catch (leadError) {
+        setLeads([]);
+        setLeadsNote(errorMessage(leadError));
+      }
 
       if (owner) {
         const { data: teamData, error: teamError } = await supabase
@@ -583,9 +598,11 @@ export function DashboardPage() {
   });
 
   const pendingRequests = requests.filter((r) => r.status === "pending");
+  const newLeads = leads.filter((lead) => lead.status === "new").length;
 
   const navItems: { id: Tab; label: string }[] = [
     { id: "overview", label: "Overview" },
+    { id: "leads", label: newLeads > 0 ? `Leads (${newLeads} new)` : "Leads" },
     { id: "previews", label: "Website Previews" },
   ];
 
@@ -689,6 +706,17 @@ export function DashboardPage() {
                 See who has opened their website preview, and who to contact today.
               </p>
             </div>
+
+            {newLeads > 0 && (
+              <section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-300 bg-amber-50 px-5 py-4">
+                <p className="text-[14px] font-semibold text-amber-950">
+                  {newLeads === 1 ? "1 new lead is waiting for you." : `${newLeads} new leads are waiting for you.`}
+                </p>
+                <button type="button" className={primaryButton} onClick={() => setActiveTab("leads")}>
+                  View leads
+                </button>
+              </section>
+            )}
 
             {isOwner && pendingRequests.length > 0 && (
               <section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-300 bg-amber-50 px-5 py-4">
@@ -795,6 +823,18 @@ export function DashboardPage() {
               </>
             )}
           </div>
+        )}
+
+        {activeTab === "leads" && (
+          <LeadsPanel
+            leads={leads}
+            note={leadsNote}
+            isOwner={isOwner}
+            onChanged={(updated) => setLeads((prev) => prev.map((l) => (l.id === updated.id ? updated : l)))}
+            onRemoved={(id) => setLeads((prev) => prev.filter((l) => l.id !== id))}
+            onError={setError}
+            onNotice={setNotice}
+          />
         )}
 
         {activeTab === "previews" && (
