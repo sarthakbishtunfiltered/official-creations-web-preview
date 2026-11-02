@@ -5,8 +5,12 @@ import { siteConfig } from "../config";
 import { BUDGET_OPTIONS, TIMELINE_OPTIONS, submitLead } from "../lib/leads";
 import type { LeadInput, LeadKind } from "../lib/leads";
 import { isValidPhone } from "../lib/siteData";
-import { inputClass, labelClass } from "./form/Field";
+import { labelClass } from "./form/Field";
 import { NicheSelect } from "./form/NicheSelect";
+
+// Visitor-page look: soft cream fields on a white card.
+const inputClass =
+  "w-full rounded-xl border border-[#E4DFD3] bg-[#FAF8F2] px-4 py-3 text-[15px] font-medium text-[#111111] placeholder:text-[#A8A396] transition-colors duration-200 focus:border-[#111111] focus:outline-none aria-[invalid=true]:border-red-600";
 
 const whatsappDigits = siteConfig.whatsappNumber.replace(/\D/g, "");
 
@@ -62,7 +66,15 @@ function ErrorText({ id, message }: { id: string; message: string | undefined })
   );
 }
 
-export function LeadForm({ kind, onKindChange }: { kind: LeadKind; onKindChange: (kind: LeadKind) => void }) {
+interface LeadFormProps {
+  kind: LeadKind;
+  onKindChange: (kind: LeadKind) => void;
+  // A package the visitor chose on the page. It is added to the details the team receives.
+  packageName?: string | null;
+  onClearPackage?: () => void;
+}
+
+export function LeadForm({ kind, onKindChange, packageName = null, onClearPackage }: LeadFormProps) {
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [showErrors, setShowErrors] = useState(false);
   const [sending, setSending] = useState(false);
@@ -117,7 +129,7 @@ export function LeadForm({ kind, onKindChange }: { kind: LeadKind; onKindChange:
         email: draft.email.trim(),
         business_name: draft.business_name.trim(),
         city: draft.city.trim(),
-        details: draft.details.trim(),
+        details: [packageName ? `Package: ${packageName}` : "", draft.details.trim()].filter(Boolean).join("\n"),
       });
       setSentKind(kind);
     } catch (error) {
@@ -138,7 +150,7 @@ export function LeadForm({ kind, onKindChange }: { kind: LeadKind; onKindChange:
     return (
       <div
         role="status"
-        className="flex flex-col items-start gap-4 rounded-2xl border border-[#D5CFD0] bg-white/70 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.04)] sm:p-8"
+        className="flex flex-col items-start gap-4 rounded-[28px] bg-white p-6 shadow-[0_20px_60px_rgba(40,30,0,0.10)] sm:p-8"
       >
         <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-800">
           <Check className="h-5 w-5" aria-hidden="true" />
@@ -179,7 +191,7 @@ export function LeadForm({ kind, onKindChange }: { kind: LeadKind; onKindChange:
       noValidate
       autoComplete="on"
       onSubmit={handleSubmit}
-      className="relative flex flex-col gap-6 rounded-2xl border border-[#D5CFD0] bg-white/70 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.04)] backdrop-blur-sm sm:p-8"
+      className="relative flex flex-col gap-6 rounded-[28px] bg-white p-6 shadow-[0_20px_60px_rgba(40,30,0,0.10)] sm:p-8"
     >
       {/* Trap for bots: people never see or reach this field. */}
       <div aria-hidden="true" className="absolute -left-[9999px] top-0 h-0 w-0 overflow-hidden">
@@ -194,6 +206,23 @@ export function LeadForm({ kind, onKindChange }: { kind: LeadKind; onKindChange:
         />
       </div>
 
+      {packageName && (
+        <p className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#111111] bg-white px-4 py-3 text-[14px] font-semibold">
+          <span>
+            Package: <span className="font-bold">{packageName}</span>
+          </span>
+          {onClearPackage && (
+            <button
+              type="button"
+              onClick={onClearPackage}
+              className="cursor-pointer text-[13px] font-semibold text-[#6B6566] underline underline-offset-4 hover:text-[#111111]"
+            >
+              Remove
+            </button>
+          )}
+        </p>
+      )}
+
       <fieldset className="flex flex-col gap-2">
         <legend className={`mb-2 ${labelClass}`}>What would you like?</legend>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -201,7 +230,7 @@ export function LeadForm({ kind, onKindChange }: { kind: LeadKind; onKindChange:
             <label
               key={k.id}
               className={`flex cursor-pointer flex-col rounded-xl border px-4 py-3 transition-colors duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[#111111]/40 ${
-                kind === k.id ? "border-[#111111] bg-white" : "border-[#D5CFD0] bg-[#F4EFEF]/80 hover:bg-white"
+                kind === k.id ? "border-[#111111] bg-white" : "border-[#E4DFD3] bg-[#FAF8F2] hover:bg-white"
               }`}
             >
               <input
@@ -295,6 +324,7 @@ export function LeadForm({ kind, onKindChange }: { kind: LeadKind; onKindChange:
             What kind of business is it? <span className="text-red-700" aria-hidden="true">*</span>
           </label>
           <NicheSelect
+            fieldClass={inputClass}
             value={draft.niche}
             onChange={(id) => set("niche", id)}
             invalid={Boolean(shown["niche"])}
@@ -318,7 +348,7 @@ export function LeadForm({ kind, onKindChange }: { kind: LeadKind; onKindChange:
         </select>
       </div>
 
-      <details className="group rounded-xl border border-[#D5CFD0] bg-[#F4EFEF]/60">
+      <details className="group rounded-xl border border-[#E4DFD3] bg-[#FAF8F2]">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-4 py-3 text-[14px] font-bold text-[#111111] [&::-webkit-details-marker]:hidden">
           <span>
             Add more detail <span className="font-medium text-[#6B6566]">(optional)</span>
@@ -360,7 +390,7 @@ export function LeadForm({ kind, onKindChange }: { kind: LeadKind; onKindChange:
                 <label
                   key={d.id || "none"}
                   className={`flex cursor-pointer flex-col rounded-xl border px-3 py-3 transition-colors duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[#111111]/40 ${
-                    draft.design === d.id ? "border-[#111111] bg-white" : "border-[#D5CFD0] bg-[#F4EFEF]/80 hover:bg-white"
+                    draft.design === d.id ? "border-[#111111] bg-white" : "border-[#E4DFD3] bg-[#FAF8F2] hover:bg-white"
                   }`}
                 >
                   <input
@@ -428,7 +458,7 @@ export function LeadForm({ kind, onKindChange }: { kind: LeadKind; onKindChange:
       <button
         type="submit"
         disabled={sending}
-        className="flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl bg-[#111111] py-3.5 text-[15px] font-semibold text-white transition-colors duration-200 hover:bg-black disabled:cursor-not-allowed disabled:opacity-60"
+        className="flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl bg-[#111111] py-4 text-[16px] font-semibold text-white transition-colors duration-200 hover:bg-black disabled:cursor-not-allowed disabled:opacity-60"
       >
         {sending ? "Sending..." : kind === "sample" ? "Request my sample" : "Send my order request"}
         {!sending && <ArrowRight className="h-4 w-4" />}

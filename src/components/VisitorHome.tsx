@@ -1,28 +1,30 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronDown, Eye, Pencil, Phone, Rocket } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, Phone } from "lucide-react";
 import { siteConfig } from "../config";
+import { proof } from "../data/proof";
 import { supabase } from "../lib/supabase";
 import type { TeamAccess } from "../lib/useTeamAccess";
 import type { LeadKind } from "../lib/leads";
 import { LeadForm } from "./LeadForm";
-import { SupportedNiches } from "./SupportedNiches";
+import { niches } from "../data/niches";
 
 const whatsappDigits = siteConfig.whatsappNumber.replace(/\D/g, "");
 
+const delivery = proof.deliveryTime.trim();
+
 const steps = [
   {
-    icon: Pencil,
     title: "Tell us about your business",
     desc: "Send your business name, what you do, your city and your budget. The form takes about two minutes.",
   },
   {
-    icon: Eye,
     title: "See your website",
-    desc: "Our team makes a website with your name and details already on it, and shows you the finished result.",
+    desc: `Our team makes a website with your name and details already on it${
+      delivery ? `, ${delivery}` : ""
+    }, and shows you the finished result.`,
   },
   {
-    icon: Rocket,
     title: "Take it live",
     desc: "Like it? We get it ready to go live. Want changes? Tell us and we update it.",
   },
@@ -37,6 +39,9 @@ const questions = [
     q: "What happens after I send the form?",
     a: "Our team gets your details and contacts you on the phone number you gave. If you asked for a sample, we show it to you when it is ready.",
   },
+  ...(delivery
+    ? [{ q: "How long does it take?", a: `We make your website ${delivery}. We confirm the exact time when we contact you.` }]
+    : []),
   {
     q: "What if I already know I want a website?",
     a: "Choose “Place an order” in the form. Your details go to our team, and we contact you to confirm everything before anything starts.",
@@ -47,10 +52,44 @@ const questions = [
   },
 ];
 
-// What the public sees at the homepage: a short pitch and one form. Team members see the
-// generator instead (see Home.tsx).
+const RED = "#FF5A3C";
+const YELLOW = "#FDB927";
+const GREEN = "#00C26E";
+const BLUE = "#6C63F0";
+const stepColors = [RED, YELLOW, GREEN];
+
+const features = [
+  { title: "Made for your industry", desc: "Templates built for your niche and its customers." },
+  { title: "Built for enquiries", desc: "Call and WhatsApp buttons are part of every site." },
+  { title: "Fully responsive", desc: "Looks right on phones, tablets and desktops." },
+  { title: "Easy changes", desc: "Tell us what to change and we update your site." },
+];
+
+// Flat colour shapes, the page's signature decoration. They are decoration only.
+function Shape({ kind, color, className }: { kind: "half" | "tri" | "dot" | "quarter"; color: string; className: string }) {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 100 100" className={`pointer-events-none absolute ${className}`}>
+      {kind === "half" && <path d="M0 100 A100 100 0 0 1 100 0 Z" fill={color} />}
+      {kind === "tri" && <path d="M0 0 L100 0 L0 100 Z" fill={color} />}
+      {kind === "dot" && <circle cx="50" cy="50" r="50" fill={color} />}
+      {kind === "quarter" && <path d="M0 100 L0 0 A100 100 0 0 1 100 100 Z" fill={color} />}
+    </svg>
+  );
+}
+
+const sectionTitle = "text-[38px] font-extrabold leading-[1.05] tracking-[-0.035em] sm:text-[52px] lg:text-[60px]";
+const accent = "font-serif font-normal italic tracking-normal";
+const card = "rounded-[28px] bg-white shadow-[0_8px_30px_rgba(40,30,0,0.06)]";
+const blackBtn =
+  "inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#111111] px-7 py-3.5 text-[16px] font-semibold text-white transition-colors duration-200 hover:bg-black";
+const outlineBtn =
+  "inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#111111] px-7 py-3.5 text-[16px] font-semibold text-[#111111] transition-colors duration-200 hover:bg-[#111111] hover:text-white";
+
+// What the public sees at the homepage: the pitch with the request form beside it, then the
+// proof from src/data/proof.ts. Team members see the generator instead (see Home.tsx).
 export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: "approved" | "checking" }> }) {
   const [kind, setKind] = useState<LeadKind>("sample");
+  const [packageName, setPackageName] = useState<string | null>(null);
   // On a phone a bar with the main button stays at the bottom until the form itself is on screen.
   const [formInView, setFormInView] = useState(false);
 
@@ -64,8 +103,9 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
     return () => observer.disconnect();
   }, []);
 
-  function choose(next: LeadKind) {
+  function goToForm(next: LeadKind, chosenPackage: string | null = null) {
     setKind(next);
+    setPackageName(chosenPackage);
     document.getElementById("start")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
@@ -75,24 +115,33 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
   }
 
   const quietLink =
-    "cursor-pointer text-[13px] font-semibold text-[#6B6566] underline-offset-4 transition-colors duration-200 hover:text-[#111111] hover:underline";
+    "cursor-pointer text-[14px] font-semibold text-[#6B6657] underline-offset-4 transition-colors duration-200 hover:text-[#111111] hover:underline";
+
+  const navLinks = [
+    ...(proof.samples.length > 0 ? [{ href: "#samples", label: "Our work" }] : []),
+    { href: "#how-it-works", label: "How it works" },
+    ...(proof.packages.length > 0 ? [{ href: "#packages", label: "Pricing" }] : []),
+    { href: "#faq", label: "Questions" },
+  ];
 
   return (
-    <div className="flex min-h-screen flex-col overflow-x-clip bg-[#EAE4E5] pb-20 font-sans text-[#111111] md:pb-0">
-      <header className="sticky top-0 z-40 border-b border-[#D5CFD0]/60 bg-[#EAE4E5]/90 backdrop-blur-md">
+    <div className="flex min-h-screen flex-col overflow-x-clip bg-[#FCF9F2] pb-20 font-[Manrope,Inter,sans-serif] text-[#111111] md:pb-0">
+      <header className="sticky top-0 z-40 bg-[#FCF9F2]/90 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-6 py-4 sm:px-12 lg:px-16">
           <div className="flex items-center gap-2.5">
-            <img
-              src="/OC_Black-removebg-preview.png"
-              alt=""
-              width={32}
-              height={32}
-              className="h-8 w-8 object-contain"
-            />
-            <span className="text-[17px] font-bold tracking-tight sm:text-[19px]">Official Creations</span>
+            <img src="/OC_Black-removebg-preview.png" alt="" width={36} height={36} className="h-9 w-9 object-contain" />
+            <span className="text-[18px] font-extrabold tracking-tight">Official Creations</span>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-4">
+          <nav aria-label="Page sections" className="hidden items-center gap-9 lg:flex">
+            {navLinks.map((link) => (
+              <a key={link.href} href={link.href} className="text-[16px] font-medium transition-opacity duration-200 hover:opacity-60">
+                {link.label}
+              </a>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-3 sm:gap-5">
             {access.status === "denied" ? (
               <button type="button" onClick={() => void signOut()} className={quietLink}>
                 Sign out
@@ -107,7 +156,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
                 href={`https://wa.me/${whatsappDigits}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden items-center gap-2 rounded-lg border border-[#BCB6B7] px-4 py-2 text-[14px] font-medium transition-colors duration-200 hover:bg-[#BCB6B7]/10 md:inline-flex"
+                className="hidden items-center gap-2 text-[14px] font-semibold md:inline-flex"
               >
                 <Phone className="h-3.5 w-3.5 rotate-[10deg] fill-[#111111] stroke-none" />
                 Chat with us
@@ -115,170 +164,313 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
             )}
             <button
               type="button"
-              onClick={() => choose("sample")}
-              className="hidden cursor-pointer rounded-lg bg-[#111111] px-5 py-2 text-[14px] font-semibold text-white transition-colors duration-200 hover:bg-black sm:inline-block"
+              onClick={() => goToForm("sample", packageName)}
+              className="hidden cursor-pointer rounded-xl bg-[#111111] px-5 py-2.5 text-[15px] font-semibold text-white transition-colors hover:bg-black sm:inline-flex"
             >
-              Request a sample
+              Get started
             </button>
           </div>
         </div>
       </header>
 
       <main>
-        {/* Hero */}
-        <section className="mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-6 pb-16 pt-12 sm:px-12 lg:grid-cols-12 lg:gap-8 lg:px-16 lg:pb-24 lg:pt-16">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-            className="flex flex-col items-start lg:col-span-6"
-          >
-            <h1 className="text-[44px] font-semibold leading-[1.05] tracking-[-0.03em] sm:text-[56px] lg:text-[72px]">
-              Imagine <br />
-              your brand, <br />
-              <span className="mt-1 block font-serif font-normal italic tracking-wide">already online.</span>
-            </h1>
+        {/* Big headline with the request form right beside it, so nobody has to scroll to act */}
+        <section className="relative">
+          <Shape kind="half" color={GREEN} className="-left-20 top-[40%] hidden h-40 w-40 -rotate-[8deg] lg:block" />
+          <Shape kind="dot" color={RED} className="left-[42%] top-8 hidden h-10 w-10 lg:block" />
+          <Shape kind="tri" color={YELLOW} className="-left-6 top-[8%] hidden h-28 w-28 rotate-[40deg] lg:block" />
+          <Shape kind="quarter" color={BLUE} className="right-8 top-[6%] hidden h-24 w-24 rotate-[200deg] lg:block" />
+          <Shape kind="tri" color={YELLOW} className="-right-8 bottom-6 hidden h-52 w-52 rotate-[90deg] lg:block" />
+          <Shape kind="half" color={RED} className="-right-10 top-[44%] hidden h-24 w-24 rotate-[200deg] lg:block" />
 
-            <p className="mt-8 max-w-[480px] text-[18px] font-medium leading-[1.5] text-[#6B6566] sm:text-[20px]">
-              Tell us about your business. We make a website with your name on it, so you can see it before you decide.
-            </p>
+          <div className="relative mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-10 px-6 pb-16 pt-8 sm:px-12 lg:grid-cols-12 lg:gap-14 lg:px-16 lg:pb-24 lg:pt-12">
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: "easeOut" }}
+              className="flex flex-col items-start lg:col-span-6"
+            >
+              <h1 className="text-[48px] font-extrabold leading-[1.0] tracking-[-0.045em] sm:text-[68px] lg:text-[76px]">
+                Your website,
+                <span className={`block ${accent}`}>already made.</span>
+              </h1>
 
-            <div className="mt-10 flex flex-wrap items-center gap-3 sm:gap-4">
-              <button
-                type="button"
-                onClick={() => choose("sample")}
-                className="flex cursor-pointer items-center rounded-lg bg-[#111111] px-6 py-3.5 text-[15px] font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-black"
-              >
-                <span className="mr-2.5 h-2.5 w-2.5 shrink-0 rounded-full bg-[#FFE600] shadow-[0_0_8px_rgba(255,230,0,0.8)]" />
-                Request a sample
-              </button>
-              <button
-                type="button"
-                onClick={() => choose("order")}
-                className="cursor-pointer rounded-lg border border-[#BCB6B7] bg-white/40 px-6 py-3.5 text-[15px] font-semibold shadow-sm transition-colors duration-200 hover:bg-white/80"
-              >
-                Place an order
-              </button>
-            </div>
+              <p className="mt-6 max-w-[460px] text-[19px] font-medium leading-[1.5] text-[#4A463C]">
+                Tell us about your business. We build a website with your name on it, so you can see it before you decide.
+              </p>
 
-            <p className="mt-5 max-w-[420px] text-[13px] font-medium leading-[1.6] text-[#6B6566]">
-              Your details go straight to our team, and we contact you on the number you give. You choose whether you
-              want to see a sample first or go straight to an order.
-            </p>
-          </motion.div>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <button type="button" onClick={() => goToForm("sample")} className={blackBtn}>
+                  Request a sample
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </button>
+                <a href="#how-it-works" className={outlineBtn}>
+                  How it works
+                </a>
+              </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut", delay: 0.1 }}
-            className="lg:col-span-6"
-          >
-            <img
-              src="/preview.png"
-              alt="A website made for a business, shown on a laptop"
-              decoding="async"
-              fetchPriority="high"
-              className="block h-auto w-full"
-            />
-          </motion.div>
+              <ul className="mt-9 flex max-w-[460px] flex-col gap-3 text-[15px] font-semibold leading-[1.5]">
+                {[
+                  { line: "Your details go straight to our team", color: RED },
+                  { line: "We contact you on the number you give", color: YELLOW },
+                  { line: "Sending the form does not start an order", color: GREEN },
+                ].map(({ line, color }) => (
+                  <li key={line} className="flex items-start gap-3">
+                    <span
+                      className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[#111111]"
+                      style={{ backgroundColor: color }}
+                    >
+                      <Check className="h-3 w-3 stroke-[3]" aria-hidden="true" />
+                    </span>
+                    {line}
+                  </li>
+                ))}
+              </ul>
+
+              {delivery && (
+                <p className="mt-6 rounded-xl bg-[#FDB927] px-4 py-3 text-[14px] font-bold">We make your website {delivery}.</p>
+              )}
+            </motion.div>
+
+            <motion.div
+              id="start"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: "easeOut", delay: 0.1 }}
+              className="scroll-mt-24 lg:col-span-6"
+            >
+              <div className="rounded-[36px] bg-[#EDEAE2] p-3 sm:p-5">
+                <LeadForm
+                  kind={kind}
+                  onKindChange={setKind}
+                  packageName={packageName}
+                  onClearPackage={() => setPackageName(null)}
+                />
+              </div>
+            </motion.div>
+          </div>
         </section>
 
+        {/* Websites already made */}
+        {proof.samples.length > 0 && (
+          <section id="samples">
+            <div className="mx-auto w-full max-w-7xl px-6 py-16 sm:px-12 sm:py-20 lg:px-16 lg:py-24">
+              <h2 className={sectionTitle}>
+                Websites we have <span className={accent}>made.</span>
+              </h2>
+
+              <ul className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {proof.samples.map((sample) => {
+                  const inner = (
+                    <div className="rounded-[28px] bg-[#EDEAE2] p-3">
+                      <img
+                        src={sample.image}
+                        alt={`Website made for ${sample.title}`}
+                        loading="lazy"
+                        decoding="async"
+                        className="aspect-[4/3] w-full rounded-[20px] bg-white object-cover object-top"
+                      />
+                      <p className="mt-4 px-2 text-[18px] font-extrabold">{sample.title}</p>
+                      <p className="px-2 pb-2 text-[14px] font-medium text-[#6B6657]">{sample.niche}</p>
+                    </div>
+                  );
+                  return (
+                    <li key={sample.title}>
+                      {sample.href ? (
+                        <a
+                          href={sample.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block transition-transform duration-300 hover:-translate-y-1"
+                        >
+                          {inner}
+                        </a>
+                      ) : (
+                        inner
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </section>
+        )}
+
         {/* How it works: the steps really are in order */}
-        <section id="how-it-works" className="border-t border-[#D5CFD0]/40">
-          <div className="mx-auto w-full max-w-7xl px-6 py-16 sm:px-12 sm:py-20 lg:px-16 lg:py-24">
-            <h2 className="text-[34px] font-bold leading-[1.1] tracking-[-0.02em] sm:text-[44px] lg:text-[50px]">
-              From your details to <span className="font-serif font-normal italic">a live website.</span>
+        <section id="how-it-works" className="px-3 sm:px-6">
+          <div className="relative mx-auto w-full max-w-7xl overflow-hidden rounded-[36px] bg-[#EDEAE2] px-6 py-16 sm:px-12 sm:py-20 lg:px-16 lg:py-24">
+            <h2 className={`${sectionTitle} max-w-3xl`}>
+              From your details to <span className={accent}>a live website.</span>
             </h2>
 
             <ol className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-3">
-              {steps.map((step, index) => {
-                const Icon = step.icon;
-                return (
-                  <li
-                    key={step.title}
-                    className="group rounded-2xl border border-[#D5CFD0] bg-[#F4EFEF]/80 p-6 transition-all duration-300 hover:border-[#111111]/30 hover:bg-white sm:p-7"
+              {steps.map((step, index) => (
+                <li key={step.title} className={`${card} p-7`}>
+                  <span
+                    className="flex h-12 w-12 items-center justify-center rounded-full text-[20px] font-extrabold"
+                    style={{ backgroundColor: stepColors[index] }}
                   >
-                    <div className="flex items-center">
-                      <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#111111] text-white">
-                        <Icon className="h-6 w-6 stroke-[1.8]" aria-hidden="true" />
-                      </span>
-                      <span aria-hidden="true" className="mx-3 flex-1 border-t-2 border-dotted border-[#BCB6B7]" />
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#111111] text-[11px] font-bold text-white">
-                        {index + 1}
-                      </span>
-                    </div>
-                    <h3 className="mb-2 mt-7 text-[20px] font-bold">{step.title}</h3>
-                    <p className="text-[14px] font-medium leading-[1.6] text-[#6B6566]">{step.desc}</p>
-                  </li>
-                );
-              })}
+                    {index + 1}
+                  </span>
+                  <h3 className="mb-2 mt-7 text-[22px] font-extrabold leading-[1.15] tracking-[-0.02em]">{step.title}</h3>
+                  <p className="text-[15px] font-medium leading-[1.6] text-[#4A463C]">{step.desc}</p>
+                </li>
+              ))}
             </ol>
           </div>
         </section>
 
-        {/* Which businesses it is for: the same section the team homepage uses */}
-        <SupportedNiches subtitle="Pick your industry in the form below and we'll build a website made for it." />
-
-        {/* The form */}
-        <section id="start" className="scroll-mt-16 border-t border-[#D5CFD0]/40">
-          <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-start gap-10 px-6 py-16 sm:px-12 lg:grid-cols-12 lg:gap-16 lg:px-16 lg:py-24">
-            <div className="flex flex-col items-start lg:sticky lg:top-24 lg:col-span-5">
-              <h2 className="text-[36px] font-bold leading-[1.08] tracking-[-0.02em] sm:text-[46px]">
-                Tell us about <span className="font-serif font-normal italic">your business.</span>
+        {/* Prices */}
+        {proof.packages.length > 0 && (
+          <section id="packages">
+            <div className="mx-auto w-full max-w-7xl px-6 py-16 sm:px-12 sm:py-20 lg:px-16 lg:py-24">
+              <h2 className={sectionTitle}>
+                What it <span className={accent}>costs.</span>
               </h2>
-              <p className="mt-5 max-w-sm text-[16px] font-medium leading-[1.6] text-[#6B6566] sm:text-[17px]">
-                Five details are all we need. Everything else is optional, and you can add it now or tell us later.
-              </p>
 
-              <ul className="mt-8 flex max-w-sm flex-col gap-4 text-[14px] font-medium leading-[1.6] text-[#6B6566]">
-                <li>
-                  <span className="block font-bold text-[#111111]">We contact you</span>
-                  On the phone number you give, to talk about your business.
-                </li>
-                <li>
-                  <span className="block font-bold text-[#111111]">You see it first</span>
-                  Choose a sample and we show you your website before you decide anything.
-                </li>
-                <li>
-                  <span className="block font-bold text-[#111111]">No pressure</span>
-                  Sending the form does not start an order. We confirm everything with you first.
-                </li>
+              <ul className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+                {proof.packages.map((pack) => (
+                  <li key={pack.name} className={`${card} flex flex-col p-7`}>
+                    <h3 className="text-[20px] font-extrabold">{pack.name}</h3>
+                    <p className="mt-1 text-[40px] font-extrabold tracking-[-0.03em]">{pack.price}</p>
+                    <ul className="mt-5 flex flex-1 flex-col gap-2.5 text-[15px] font-medium leading-[1.5] text-[#4A463C]">
+                      {pack.points.map((point) => (
+                        <li key={point} className="flex items-start gap-2.5">
+                          <Check className="mt-0.5 h-4 w-4 shrink-0 stroke-[3] text-[#00A85C]" aria-hidden="true" />
+                          {point}
+                        </li>
+                      ))}
+                    </ul>
+                    <button type="button" onClick={() => goToForm("order", pack.name)} className={`${blackBtn} mt-7`}>
+                      Choose {pack.name}
+                    </button>
+                  </li>
+                ))}
               </ul>
             </div>
+          </section>
+        )}
 
-            <div className="lg:col-span-7">
-              <LeadForm kind={kind} onKindChange={setKind} />
-            </div>
+        {/* Which businesses it is for */}
+        <section id="niches">
+          <div className="mx-auto w-full max-w-7xl px-6 py-16 sm:px-12 sm:py-20 lg:px-16 lg:py-24">
+            <h2 className={`${sectionTitle} max-w-3xl`}>
+              A website for <span className={accent}>every industry.</span>
+            </h2>
+            <p className="mt-5 max-w-xl text-[18px] font-medium leading-[1.5] text-[#4A463C]">
+              Pick your industry in the form and we'll build a website made for it.
+            </p>
+
+            <ul className="mt-10 flex flex-wrap gap-3">
+              {niches.map((niche, index) => {
+                const Icon = niche.icon;
+                return (
+                  <li
+                    key={niche.id}
+                    className="flex items-center gap-3 rounded-full bg-white py-2.5 pl-2.5 pr-5 text-[16px] font-bold shadow-[0_4px_16px_rgba(40,30,0,0.05)]"
+                  >
+                    <span
+                      className="flex h-9 w-9 items-center justify-center rounded-full"
+                      style={{ backgroundColor: [RED, YELLOW, GREEN, BLUE][index % 4] }}
+                    >
+                      <Icon className="h-[18px] w-[18px] stroke-[2] text-[#111111]" aria-hidden="true" />
+                    </span>
+                    {niche.label}
+                  </li>
+                );
+              })}
+            </ul>
+
+            <ul className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {features.map((f) => (
+                <li key={f.title} className="rounded-[24px] bg-[#EDEAE2] p-6">
+                  <h3 className="text-[17px] font-extrabold tracking-[-0.01em]">{f.title}</h3>
+                  <p className="mt-2 text-[14px] font-medium leading-[1.55] text-[#4A463C]">{f.desc}</p>
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
 
+        {/* What clients say */}
+        {proof.testimonials.length > 0 && (
+          <section id="clients">
+            <div className="mx-auto w-full max-w-7xl px-6 py-16 sm:px-12 sm:py-20 lg:px-16 lg:py-24">
+              <h2 className={sectionTitle}>
+                What our clients <span className={accent}>say.</span>
+              </h2>
+
+              <ul className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+                {proof.testimonials.map((item, index) => (
+                  <li key={item.name + item.business} className={`${card} flex flex-col p-7`}>
+                    <blockquote className="flex-1 text-[19px] font-semibold leading-[1.5] tracking-[-0.01em]">“{item.quote}”</blockquote>
+                    <div className="mt-7 flex items-center gap-3">
+                      <span
+                        aria-hidden="true"
+                        className="flex h-11 w-11 items-center justify-center rounded-full text-[17px] font-extrabold"
+                        style={{ backgroundColor: [YELLOW, GREEN, RED, BLUE][index % 4] }}
+                      >
+                        {item.name.trim().charAt(0).toUpperCase()}
+                      </span>
+                      <div>
+                        <p className="text-[15px] font-bold">{item.name}</p>
+                        <p className="text-[14px] font-medium text-[#6B6657]">{item.business}</p>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        )}
+
         {/* Questions */}
-        <section className="border-t border-[#D5CFD0]/40">
+        <section id="faq">
           <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 px-6 py-16 sm:px-12 lg:grid-cols-12 lg:gap-16 lg:px-16 lg:py-24">
-            <h2 className="text-[34px] font-bold leading-[1.1] tracking-[-0.02em] sm:text-[44px] lg:col-span-5">
-              Common <span className="font-serif font-normal italic">questions.</span>
+            <h2 className={`${sectionTitle} lg:col-span-5`}>
+              Common <span className={accent}>questions.</span>
             </h2>
 
             <div className="flex flex-col gap-3 lg:col-span-7">
               {questions.map((item) => (
-                <details key={item.q} className="group rounded-xl border border-[#D5CFD0] bg-[#F4EFEF]/60">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-xl px-5 py-4 text-[16px] font-bold [&::-webkit-details-marker]:hidden">
+                <details key={item.q} className="group rounded-[20px] bg-white shadow-[0_4px_16px_rgba(40,30,0,0.04)]">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-[20px] px-6 py-5 text-[17px] font-bold [&::-webkit-details-marker]:hidden">
                     {item.q}
                     <ChevronDown
-                      className="h-4 w-4 shrink-0 text-[#6B6566] transition-transform duration-200 group-open:rotate-180"
+                      className="h-5 w-5 shrink-0 text-[#6B6657] transition-transform duration-200 group-open:rotate-180"
                       aria-hidden="true"
                     />
                   </summary>
-                  <p className="px-5 pb-5 text-[15px] font-medium leading-[1.65] text-[#6B6566]">{item.a}</p>
+                  <p className="px-6 pb-6 text-[15px] font-medium leading-[1.65] text-[#4A463C]">{item.a}</p>
                 </details>
               ))}
             </div>
           </div>
         </section>
+
+        {/* Closing call to action */}
+        <section className="px-3 pb-6 sm:px-6">
+          <div className="relative mx-auto w-full max-w-7xl overflow-hidden rounded-[36px] bg-[#111111] px-6 py-16 text-center text-white sm:py-20">
+            <Shape kind="half" color={GREEN} className="-left-8 bottom-0 h-32 w-32 rotate-[10deg]" />
+            <Shape kind="tri" color={YELLOW} className="-right-6 top-0 h-32 w-32 rotate-[90deg]" />
+            <Shape kind="dot" color={RED} className="right-[18%] bottom-8 hidden h-9 w-9 sm:block" />
+            <h2 className="relative mx-auto max-w-3xl text-[38px] font-extrabold leading-[1.05] tracking-[-0.035em] sm:text-[56px]">
+              See your website <span className={`${accent} text-[#FDB927]`}>before you decide.</span>
+            </h2>
+            <button
+              type="button"
+              onClick={() => goToForm("sample")}
+              className="relative mt-9 inline-flex cursor-pointer items-center gap-2 rounded-xl bg-white px-8 py-4 text-[16px] font-semibold text-[#111111] transition-colors hover:bg-[#FDB927]"
+            >
+              Request a sample
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+        </section>
       </main>
 
-      <footer className="mt-auto border-t border-[#D5CFD0]/40">
-        <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-6 py-6 text-[13px] font-medium text-[#6B6566] sm:px-12 lg:px-16">
+      <footer className="mt-auto">
+        <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-6 py-6 text-[14px] font-medium text-[#6B6657] sm:px-12 lg:px-16">
           <span>© {new Date().getFullYear()} Official Creations</span>
           <a href="/login" className={quietLink}>
             Team login
@@ -288,13 +480,13 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
 
       {/* Phone only: the main button stays in reach until the form is on screen */}
       {!formInView && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#D5CFD0] bg-[#EAE4E5]/95 px-4 py-3 backdrop-blur-md md:hidden">
+        <div className="fixed inset-x-0 bottom-0 z-40 bg-[#FCF9F2]/95 px-4 py-3 shadow-[0_-8px_24px_rgba(40,30,0,0.08)] backdrop-blur-md md:hidden">
           <button
             type="button"
-            onClick={() => choose("sample")}
+            onClick={() => goToForm("sample", packageName)}
             className="flex w-full cursor-pointer items-center justify-center rounded-xl bg-[#111111] py-3.5 text-[15px] font-semibold text-white"
           >
-            <span className="mr-2.5 h-2.5 w-2.5 shrink-0 rounded-full bg-[#FFE600]" />
+            <span className="mr-2.5 h-2.5 w-2.5 shrink-0 rounded-full bg-[#FDB927]" />
             Request a sample
           </button>
         </div>

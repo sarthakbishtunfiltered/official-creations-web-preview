@@ -9,6 +9,8 @@ interface Props {
   onChange: (id: string) => void;
   invalid?: boolean;
   describedBy?: string;
+  // Optional: a different look for the field itself (the visitor page uses this)
+  fieldClass?: string;
 }
 
 // Stops a click on an option from pulling focus off the trigger button.
@@ -18,7 +20,7 @@ function keepFocus(e: { preventDefault(): void }) {
 
 // A styled replacement for the native <select>: the browser draws a native option list itself,
 // so it cannot be styled. Keyboard: arrows, Home/End, Enter/Space to pick, Escape to close.
-export function NicheSelect({ value, onChange, invalid, describedBy }: Props) {
+export function NicheSelect({ value, onChange, invalid, describedBy, fieldClass }: Props) {
   const listId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -107,7 +109,7 @@ export function NicheSelect({ value, onChange, invalid, describedBy }: Props) {
         aria-describedby={describedBy}
         onClick={() => (open ? setOpen(false) : openList())}
         onKeyDown={onKeyDown}
-        className={`${inputClass} flex cursor-pointer items-center gap-3 pr-11 text-left ${
+        className={`${fieldClass ?? inputClass} flex cursor-pointer items-center gap-3 pr-11 text-left ${
           open ? "border-[#111111]/40 bg-white" : "hover:bg-white"
         }`}
       >
