@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { MouseEvent } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Check, ChevronDown, Phone } from "lucide-react";
 import { siteConfig } from "../config";
@@ -13,6 +14,65 @@ const whatsappDigits = siteConfig.whatsappNumber.replace(/\D/g, "");
 
 // Four copies so the row loops seamlessly (the animation moves exactly half the track).
 const marqueeItems = [...niches, ...niches, ...niches, ...niches];
+
+// The tabs of the sliding navigation capsule. Only sections that are on the page get a tab.
+const navLinks = [
+  { id: "home", label: "Home" },
+  ...(proof.samples.length > 0 ? [{ id: "samples", label: "Our work" }] : []),
+  { id: "how-it-works", label: "How it works" },
+  ...(proof.packages.length > 0 ? [{ id: "packages", label: "Pricing" }] : []),
+  { id: "niches", label: "Industries" },
+  ...(proof.testimonials.length > 0 ? [{ id: "clients", label: "Clients" }] : []),
+  { id: "faq", label: "Questions" },
+];
+
+// A capsule with every tab in it. A dark pill slides to the tab you are on (or just clicked).
+function NavCapsule({
+  active,
+  onPick,
+  name,
+  className,
+}: {
+  active: string;
+  onPick: (id: string) => void;
+  name: string;
+  className: string;
+}) {
+  return (
+    <nav
+      aria-label="Page sections"
+      className={`items-center gap-0.5 rounded-full border border-black/[0.06] bg-white/75 p-1 shadow-[0_6px_24px_rgba(40,30,0,0.08)] backdrop-blur-xl ${className}`}
+    >
+      {navLinks.map((link) => {
+        const on = link.id === active;
+        return (
+          <a
+            key={link.id}
+            href={`#${link.id}`}
+            aria-current={on ? "true" : undefined}
+            onClick={(e: MouseEvent<HTMLAnchorElement>) => {
+              e.preventDefault();
+              onPick(link.id);
+            }}
+            className={`relative shrink-0 whitespace-nowrap rounded-full px-3.5 py-2 text-[14px] font-semibold transition-colors duration-200 sm:px-4 ${
+              on ? "text-white" : "text-[#4A463C] hover:text-[#111111]"
+            }`}
+          >
+            {on && (
+              <motion.div
+                layoutId={`nav-pill-${name}`}
+                aria-hidden="true"
+                className="absolute inset-0 rounded-full bg-[#111111]"
+                transition={{ type: "spring", stiffness: 420, damping: 34 }}
+              />
+            )}
+            <span className="relative">{link.label}</span>
+          </a>
+        );
+      })}
+    </nav>
+  );
+}
 
 const delivery = proof.deliveryTime.trim();
 
@@ -153,6 +213,45 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
     return () => observer.disconnect();
   }, []);
 
+  // Which tab is lit: the last section whose top has passed just under the header.
+  const [activeTab, setActiveTab] = useState("home");
+  useEffect(() => {
+    let frame = 0;
+    function update() {
+      frame = 0;
+      let current = navLinks[0]?.id ?? "home";
+      for (const link of navLinks) {
+        const el = document.getElementById(link.id);
+        if (el && el.getBoundingClientRect().top <= 140) current = link.id;
+      }
+      // At the very bottom of the page the last tab wins, even if its section is short.
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+        current = navLinks[navLinks.length - 1]?.id ?? current;
+      }
+      setActiveTab(current);
+    }
+    function onScroll() {
+      if (!frame) frame = requestAnimationFrame(update);
+    }
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  function goToTab(id: string) {
+    setActiveTab(id);
+    if (id === "home") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   function goToForm(next: LeadKind, chosenPackage: string | null = null) {
     setKind(next);
     setPackageName(chosenPackage);
@@ -167,12 +266,6 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
   const quietLink =
     "cursor-pointer text-[14px] font-semibold text-[#6B6657] underline-offset-4 transition-colors duration-200 hover:text-[#111111] hover:underline";
 
-  const navLinks = [
-    ...(proof.samples.length > 0 ? [{ href: "#samples", label: "Our work" }] : []),
-    { href: "#how-it-works", label: "How it works" },
-    ...(proof.packages.length > 0 ? [{ href: "#packages", label: "Pricing" }] : []),
-    { href: "#faq", label: "Questions" },
-  ];
 
   return (
     <div className="flex min-h-screen flex-col overflow-x-clip bg-[#FCF9F2] pb-20 font-[Manrope,Inter,sans-serif] text-[#111111] md:pb-0">
@@ -185,13 +278,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
             <span className="text-[18px] font-extrabold tracking-tight">Official Creations</span>
           </div>
 
-          <nav aria-label="Page sections" className="hidden items-center gap-9 lg:flex">
-            {navLinks.map((link) => (
-              <a key={link.href} href={link.href} className="text-[16px] font-medium transition-opacity duration-200 hover:opacity-60">
-                {link.label}
-              </a>
-            ))}
-          </nav>
+          <NavCapsule active={activeTab} onPick={goToTab} name="wide" className="hidden md:flex" />
 
           <div className="flex items-center gap-3 sm:gap-5">
             {access.status === "denied" ? (
@@ -223,11 +310,16 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
             </button>
           </div>
         </div>
+
+        {/* On phones the same capsule sits in its own row and scrolls sideways */}
+        <div className="overflow-x-auto px-4 pb-3 md:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <NavCapsule active={activeTab} onPick={goToTab} name="narrow" className="flex w-max" />
+        </div>
       </header>
 
       <main>
         {/* Big centred headline between the two shape groups, with the request form right below it */}
-        <section className="relative">
+        <section id="home" className="relative">
           <ShapesLeft className="-left-6 top-6 hidden h-[420px] w-[236px] lg:block xl:left-0 xl:h-[500px] xl:w-[282px]" />
           <ShapesRight className="-right-4 top-4 hidden h-[330px] w-[188px] lg:block xl:right-0 xl:h-[400px] xl:w-[227px]" />
 
@@ -301,7 +393,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
 
         {/* Websites already made */}
         {proof.samples.length > 0 && (
-          <section id="samples">
+          <section id="samples" className="scroll-mt-24">
             <div className="mx-auto w-full max-w-7xl px-6 py-16 sm:px-12 sm:py-20 lg:px-16 lg:py-24">
               <h2 className={sectionTitle}>
                 Websites we have <span className={accent}>made.</span>
@@ -345,7 +437,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
         )}
 
         {/* How it works: the steps really are in order */}
-        <section id="how-it-works" className="px-3 sm:px-6">
+        <section id="how-it-works" className="scroll-mt-24 px-3 sm:px-6">
           <div className="relative mx-auto w-full max-w-7xl overflow-hidden rounded-[36px] bg-[#EDEAE2] px-6 py-16 sm:px-12 sm:py-20 lg:px-16 lg:py-24">
             <h2 className={`${sectionTitle} max-w-3xl`}>
               From your details to <span className={accent}>a live website.</span>
@@ -370,7 +462,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
 
         {/* Prices */}
         {proof.packages.length > 0 && (
-          <section id="packages">
+          <section id="packages" className="scroll-mt-24">
             <div className="mx-auto w-full max-w-7xl px-6 py-16 sm:px-12 sm:py-20 lg:px-16 lg:py-24">
               <h2 className={sectionTitle}>
                 What it <span className={accent}>costs.</span>
@@ -400,7 +492,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
         )}
 
         {/* Which businesses it is for */}
-        <section id="niches">
+        <section id="niches" className="scroll-mt-24">
           <div className="mx-auto w-full max-w-7xl px-6 pt-16 sm:px-12 sm:pt-20 lg:px-16 lg:pt-24">
             <h2 className={`${sectionTitle} max-w-3xl`}>
               A website for <span className={accent}>every industry.</span>
@@ -458,7 +550,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
 
         {/* What clients say */}
         {proof.testimonials.length > 0 && (
-          <section id="clients">
+          <section id="clients" className="scroll-mt-24">
             <div className="mx-auto w-full max-w-7xl px-6 py-16 sm:px-12 sm:py-20 lg:px-16 lg:py-24">
               <h2 className={sectionTitle}>
                 What our clients <span className={accent}>say.</span>
@@ -489,7 +581,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
         )}
 
         {/* Questions */}
-        <section id="faq">
+        <section id="faq" className="scroll-mt-24">
           <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 px-6 py-16 sm:px-12 lg:grid-cols-12 lg:gap-16 lg:px-16 lg:py-24">
             <h2 className={`${sectionTitle} lg:col-span-5`}>
               Common <span className={accent}>questions.</span>
