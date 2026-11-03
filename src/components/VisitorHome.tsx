@@ -11,6 +11,9 @@ import { niches } from "../data/niches";
 
 const whatsappDigits = siteConfig.whatsappNumber.replace(/\D/g, "");
 
+// Four copies so the row loops seamlessly (the animation moves exactly half the track).
+const marqueeItems = [...niches, ...niches, ...niches, ...niches];
+
 const delivery = proof.deliveryTime.trim();
 
 const steps = [
@@ -65,14 +68,61 @@ const features = [
   { title: "Easy changes", desc: "Tell us what to change and we update your site." },
 ];
 
+// Chalky edges: a slightly wobbly outline and a few speckles, like the shapes were drawn with chalk.
+function ChalkFilter() {
+  return (
+    <svg width="0" height="0" aria-hidden="true" className="absolute">
+      <defs>
+        <filter id="chalk" x="-5%" y="-5%" width="110%" height="110%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="3" result="wobble" />
+          <feDisplacementMap in="SourceGraphic" in2="wobble" scale="5" result="rough" />
+          <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="8" result="grain" />
+          <feColorMatrix
+            in="grain"
+            type="matrix"
+            values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -6 0 0 0 4.9"
+            result="holes"
+          />
+          <feComposite in="rough" in2="holes" operator="in" />
+        </filter>
+      </defs>
+    </svg>
+  );
+}
+
 // Flat colour shapes, the page's signature decoration. They are decoration only.
 function Shape({ kind, color, className }: { kind: "half" | "tri" | "dot" | "quarter"; color: string; className: string }) {
   return (
-    <svg aria-hidden="true" viewBox="0 0 100 100" className={`pointer-events-none absolute ${className}`}>
+    <svg aria-hidden="true" viewBox="0 0 100 100" style={{ filter: "url(#chalk)" }} className={`pointer-events-none absolute z-0 ${className}`}>
       {kind === "half" && <path d="M0 100 A100 100 0 0 1 100 0 Z" fill={color} />}
       {kind === "tri" && <path d="M0 0 L100 0 L0 100 Z" fill={color} />}
       {kind === "dot" && <circle cx="50" cy="50" r="50" fill={color} />}
       {kind === "quarter" && <path d="M0 100 L0 0 A100 100 0 0 1 100 100 Z" fill={color} />}
+    </svg>
+  );
+}
+
+// The two groups of shapes that frame the top of the page, one on each edge.
+function ShapesLeft({ className }: { className: string }) {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 316 560" style={{ filter: "url(#chalk)" }} className={`pointer-events-none absolute z-0 ${className}`}>
+      <polygon points="0,20 65,20 62,170 0,105" fill={RED} />
+      <polygon points="0,185 104,290 0,400" fill={YELLOW} />
+      <path d="M92 190 L172 262 A54 54 0 0 0 92 190 Z" fill={BLUE} />
+      <path d="M130 497 L293 326 A118 118 0 0 0 130 497 Z" fill={GREEN} />
+      <circle cx="53" cy="487" r="30" fill={RED} />
+    </svg>
+  );
+}
+
+function ShapesRight({ className }: { className: string }) {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 250 440" style={{ filter: "url(#chalk)" }} className={`pointer-events-none absolute z-0 ${className}`}>
+      <polygon points="188,50 250,0 250,50" fill={BLUE} />
+      <path d="M127 88 H250 A61 61 0 0 1 127 88 Z" fill={RED} />
+      <polygon points="0,200 195,200 195,395" fill={YELLOW} />
+      <circle cx="245" cy="372" r="30" fill={BLUE} />
+      <polygon points="230,300 250,285 250,325" fill={GREEN} />
     </svg>
   );
 }
@@ -126,6 +176,8 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
 
   return (
     <div className="flex min-h-screen flex-col overflow-x-clip bg-[#FCF9F2] pb-20 font-[Manrope,Inter,sans-serif] text-[#111111] md:pb-0">
+      <ChalkFilter />
+
       <header className="sticky top-0 z-40 bg-[#FCF9F2]/90 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-6 py-4 sm:px-12 lg:px-16">
           <div className="flex items-center gap-2.5">
@@ -174,32 +226,28 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
       </header>
 
       <main>
-        {/* Big headline with the request form right beside it, so nobody has to scroll to act */}
+        {/* Big centred headline between the two shape groups, with the request form right below it */}
         <section className="relative">
-          <Shape kind="half" color={GREEN} className="-left-20 top-[40%] hidden h-40 w-40 -rotate-[8deg] lg:block" />
-          <Shape kind="dot" color={RED} className="left-[42%] top-8 hidden h-10 w-10 lg:block" />
-          <Shape kind="tri" color={YELLOW} className="-left-6 top-[8%] hidden h-28 w-28 rotate-[40deg] lg:block" />
-          <Shape kind="quarter" color={BLUE} className="right-8 top-[6%] hidden h-24 w-24 rotate-[200deg] lg:block" />
-          <Shape kind="tri" color={YELLOW} className="-right-8 bottom-6 hidden h-52 w-52 rotate-[90deg] lg:block" />
-          <Shape kind="half" color={RED} className="-right-10 top-[44%] hidden h-24 w-24 rotate-[200deg] lg:block" />
+          <ShapesLeft className="-left-6 top-6 hidden h-[420px] w-[236px] lg:block xl:left-0 xl:h-[500px] xl:w-[282px]" />
+          <ShapesRight className="-right-4 top-4 hidden h-[330px] w-[188px] lg:block xl:right-0 xl:h-[400px] xl:w-[227px]" />
 
-          <div className="relative mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-10 px-6 pb-16 pt-8 sm:px-12 lg:grid-cols-12 lg:gap-14 lg:px-16 lg:pb-24 lg:pt-12">
+          <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col items-center px-6 pb-16 pt-8 text-center sm:px-12 lg:px-16 lg:pb-24 lg:pt-10">
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease: "easeOut" }}
-              className="flex flex-col items-start lg:col-span-6"
+              className="flex flex-col items-center"
             >
-              <h1 className="text-[48px] font-extrabold leading-[1.0] tracking-[-0.045em] sm:text-[68px] lg:text-[76px]">
+              <h1 className="text-[48px] font-extrabold leading-[1.0] tracking-[-0.045em] sm:text-[68px] lg:text-[80px]">
                 Your website,
                 <span className={`block ${accent}`}>already made.</span>
               </h1>
 
-              <p className="mt-6 max-w-[460px] text-[19px] font-medium leading-[1.5] text-[#4A463C]">
+              <p className="mt-6 max-w-[520px] text-[19px] font-medium leading-[1.5] text-[#4A463C]">
                 Tell us about your business. We build a website with your name on it, so you can see it before you decide.
               </p>
 
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
                 <button type="button" onClick={() => goToForm("sample")} className={blackBtn}>
                   Request a sample
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -209,15 +257,15 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
                 </a>
               </div>
 
-              <ul className="mt-9 flex max-w-[460px] flex-col gap-3 text-[15px] font-semibold leading-[1.5]">
+              <ul className="mt-8 flex flex-wrap justify-center gap-x-7 gap-y-2 text-[14px] font-semibold">
                 {[
                   { line: "Your details go straight to our team", color: RED },
                   { line: "We contact you on the number you give", color: YELLOW },
                   { line: "Sending the form does not start an order", color: GREEN },
                 ].map(({ line, color }) => (
-                  <li key={line} className="flex items-start gap-3">
+                  <li key={line} className="flex items-center gap-2">
                     <span
-                      className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[#111111]"
+                      className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full text-[#111111]"
                       style={{ backgroundColor: color }}
                     >
                       <Check className="h-3 w-3 stroke-[3]" aria-hidden="true" />
@@ -228,7 +276,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
               </ul>
 
               {delivery && (
-                <p className="mt-6 rounded-xl bg-[#FDB927] px-4 py-3 text-[14px] font-bold">We make your website {delivery}.</p>
+                <p className="mt-5 rounded-xl bg-[#FDB927] px-4 py-3 text-[14px] font-bold">We make your website {delivery}.</p>
               )}
             </motion.div>
 
@@ -237,7 +285,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease: "easeOut", delay: 0.1 }}
-              className="scroll-mt-24 lg:col-span-6"
+              className="mt-12 w-full max-w-[760px] scroll-mt-24 text-left"
             >
               <div className="rounded-[36px] bg-[#EDEAE2] p-3 sm:p-5">
                 <LeadForm
@@ -353,7 +401,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
 
         {/* Which businesses it is for */}
         <section id="niches">
-          <div className="mx-auto w-full max-w-7xl px-6 py-16 sm:px-12 sm:py-20 lg:px-16 lg:py-24">
+          <div className="mx-auto w-full max-w-7xl px-6 pt-16 sm:px-12 sm:pt-20 lg:px-16 lg:pt-24">
             <h2 className={`${sectionTitle} max-w-3xl`}>
               A website for <span className={accent}>every industry.</span>
             </h2>
@@ -361,26 +409,42 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
               Pick your industry in the form and we'll build a website made for it.
             </p>
 
-            <ul className="mt-10 flex flex-wrap gap-3">
-              {niches.map((niche, index) => {
+          </div>
+
+          {/* Screen readers get the list once; the moving line below is decoration */}
+          <ul className="sr-only">
+            {niches.map((niche) => (
+              <li key={niche.id}>{niche.label}</li>
+            ))}
+          </ul>
+
+          <div
+            aria-hidden="true"
+            className="my-2 w-full overflow-hidden"
+            style={{
+              maskImage: "linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%)",
+            }}
+          >
+            <div className="animate-marquee flex items-center py-3">
+              {marqueeItems.map((niche, idx) => {
                 const Icon = niche.icon;
                 return (
-                  <li
-                    key={niche.id}
-                    className="flex items-center gap-3 rounded-full bg-white py-2.5 pl-2.5 pr-5 text-[16px] font-bold shadow-[0_4px_16px_rgba(40,30,0,0.05)]"
-                  >
+                  <div key={`${niche.id}-${idx}`} className="flex shrink-0 cursor-default select-none items-center gap-3.5 pr-20">
                     <span
-                      className="flex h-9 w-9 items-center justify-center rounded-full"
-                      style={{ backgroundColor: [RED, YELLOW, GREEN, BLUE][index % 4] }}
+                      className="flex h-10 w-10 items-center justify-center rounded-full"
+                      style={{ backgroundColor: [RED, YELLOW, GREEN, BLUE][idx % 4] }}
                     >
-                      <Icon className="h-[18px] w-[18px] stroke-[2] text-[#111111]" aria-hidden="true" />
+                      <Icon className="h-5 w-5 stroke-[2] text-[#111111]" />
                     </span>
-                    {niche.label}
-                  </li>
+                    <span className="whitespace-nowrap text-[19px] font-bold tracking-[-0.01em] sm:text-[22px]">{niche.label}</span>
+                  </div>
                 );
               })}
-            </ul>
+            </div>
+          </div>
 
+          <div className="mx-auto w-full max-w-7xl px-6 pb-16 sm:px-12 sm:pb-20 lg:px-16 lg:pb-24">
             <ul className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {features.map((f) => (
                 <li key={f.title} className="rounded-[24px] bg-[#EDEAE2] p-6">

@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Newsreader', Georgia, serif;
+  --color-brand-bg: #EAE4E5;
+}
+
+html {
+  scroll-padding-top: 110px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+body {
+  background-color: #EAE4E5;
+  font-family: 'Inter', sans-serif;
+  color: #1a1a1a;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.oc-glass-header {
+  margin-bottom: -1px;
+}
+
+.oc-glass-nav {
+  position: relative;
+  isolation: isolate;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0.34) 48%, rgba(255, 255, 255, 0.58)),
+    rgba(250, 248, 247, 0.58);
+  -webkit-backdrop-filter: blur(28px) saturate(175%);
+  backdrop-filter: blur(28px) saturate(175%);
+  box-shadow:
+    0 12px 36px rgba(37, 29, 31, 0.09),
+    0 2px 8px rgba(37, 29, 31, 0.045),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.24);
+}
+
+.oc-glass-nav::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(110deg, rgba(255,255,255,.32), transparent 38%, rgba(255,255,255,.12) 72%, transparent);
+}
+
+.oc-glass-active-pill {
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: linear-gradient(145deg, rgba(255,255,255,.88), rgba(255,255,255,.52));
+  box-shadow:
+    0 2px 8px rgba(31, 27, 28, 0.08),
+    inset 0 1px 0 rgba(255,255,255,.95);
+}
+
+@media (max-width: 1023px) {
+  .oc-glass-nav {
+    min-height: 56px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oc-glass-nav *,
+  .oc-glass-nav *::before,
+  .oc-glass-nav *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 91s linear infinite;
+}
+
+.animate-marquee:hover { animation-play-state: paused; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee { animation: none; }
+}
+
+@keyframes pop {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-pop { animation: pop 140ms ease-out; }
+}
