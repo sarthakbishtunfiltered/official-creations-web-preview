@@ -393,7 +393,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
 
         {/* Websites already made */}
         {proof.samples.length > 0 && (
-          <section id="samples" className="scroll-mt-24">
+          <section id="samples" className="scroll-mt-32 md:scroll-mt-24">
             <div className="mx-auto w-full max-w-7xl px-6 py-16 sm:px-12 sm:py-20 lg:px-16 lg:py-24">
               <h2 className={sectionTitle}>
                 Websites we have <span className={accent}>made.</span>
@@ -437,32 +437,54 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
         )}
 
         {/* How it works: the steps really are in order */}
-        <section id="how-it-works" className="scroll-mt-24 px-3 sm:px-6">
-          <div className="relative mx-auto w-full max-w-7xl overflow-hidden rounded-[36px] bg-[#EDEAE2] px-6 py-16 sm:px-12 sm:py-20 lg:px-16 lg:py-24">
-            <h2 className={`${sectionTitle} max-w-3xl`}>
-              From your details to <span className={accent}>a live website.</span>
-            </h2>
+        <section id="how-it-works" className="scroll-mt-32 px-3 sm:px-6 md:scroll-mt-24">
+          <div className="relative mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-10 overflow-hidden rounded-[36px] bg-[#EDEAE2] px-6 py-16 sm:px-12 sm:py-20 lg:grid-cols-12 lg:gap-12 lg:px-16 lg:py-24">
+            <div className="lg:col-span-6">
+              <h2 className={sectionTitle}>
+                From your details to <span className={accent}>a live website.</span>
+              </h2>
 
-            <ol className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-3">
-              {steps.map((step, index) => (
-                <li key={step.title} className={`${card} p-7`}>
-                  <span
-                    className="flex h-12 w-12 items-center justify-center rounded-full text-[20px] font-extrabold"
-                    style={{ backgroundColor: stepColors[index] }}
-                  >
-                    {index + 1}
-                  </span>
-                  <h3 className="mb-2 mt-7 text-[22px] font-extrabold leading-[1.15] tracking-[-0.02em]">{step.title}</h3>
-                  <p className="text-[15px] font-medium leading-[1.6] text-[#4A463C]">{step.desc}</p>
-                </li>
-              ))}
-            </ol>
+              <ol className="mt-10 flex flex-col gap-4">
+                {steps.map((step, index) => (
+                  <li key={step.title} className={`${card} flex items-start gap-5 p-6`}>
+                    <span
+                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-[20px] font-extrabold"
+                      style={{ backgroundColor: stepColors[index] }}
+                    >
+                      {index + 1}
+                    </span>
+                    <div>
+                      <h3 className="mb-1.5 text-[20px] font-extrabold leading-[1.15] tracking-[-0.02em]">{step.title}</h3>
+                      <p className="text-[15px] font-medium leading-[1.6] text-[#4A463C]">{step.desc}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, ease: "easeOut" }}
+              className="lg:col-span-6"
+            >
+              <img
+                src="/macbook-mockup.webp"
+                alt="A website made for a business, shown on a laptop"
+                width={1134}
+                height={1075}
+                loading="lazy"
+                decoding="async"
+                className="mx-auto h-auto w-full max-w-[560px] select-none drop-shadow-[0_30px_40px_rgba(40,30,0,0.18)] lg:max-w-none"
+              />
+            </motion.div>
           </div>
         </section>
 
         {/* Prices */}
         {proof.packages.length > 0 && (
-          <section id="packages" className="scroll-mt-24">
+          <section id="packages" className="scroll-mt-32 md:scroll-mt-24">
             <div className="mx-auto w-full max-w-7xl px-6 py-16 sm:px-12 sm:py-20 lg:px-16 lg:py-24">
               <h2 className={sectionTitle}>
                 What it <span className={accent}>costs.</span>
@@ -492,7 +514,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
         )}
 
         {/* Which businesses it is for */}
-        <section id="niches" className="scroll-mt-24">
+        <section id="niches" className="scroll-mt-32 md:scroll-mt-24">
           <div className="mx-auto w-full max-w-7xl px-6 pt-16 sm:px-12 sm:pt-20 lg:px-16 lg:pt-24">
             <h2 className={`${sectionTitle} max-w-3xl`}>
               A website for <span className={accent}>every industry.</span>
@@ -550,7 +572,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
 
         {/* What clients say */}
         {proof.testimonials.length > 0 && (
-          <section id="clients" className="scroll-mt-24">
+          <section id="clients" className="scroll-mt-32 md:scroll-mt-24">
             <div className="mx-auto w-full max-w-7xl px-6 py-16 sm:px-12 sm:py-20 lg:px-16 lg:py-24">
               <h2 className={sectionTitle}>
                 What our clients <span className={accent}>say.</span>
@@ -581,7 +603,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
         )}
 
         {/* Questions */}
-        <section id="faq" className="scroll-mt-24">
+        <section id="faq" className="scroll-mt-32 md:scroll-mt-24">
           <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 px-6 py-16 sm:px-12 lg:grid-cols-12 lg:gap-16 lg:px-16 lg:py-24">
             <h2 className={`${sectionTitle} lg:col-span-5`}>
               Common <span className={accent}>questions.</span>
