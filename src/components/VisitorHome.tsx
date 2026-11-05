@@ -4,7 +4,6 @@ import { MotionConfig, motion } from "framer-motion";
 import {
   ArrowRightIcon,
   CheckIcon,
-  ChevronDownIcon,
   DevicesIcon,
   EyeIcon,
   IconBadge,
@@ -12,6 +11,7 @@ import {
   InteriorIcon,
   LayoutIcon,
   MobileIcon,
+  PlusIcon,
   PencilIcon,
   PhoneIcon,
   SparkIcon,
@@ -643,6 +643,96 @@ function BentoGrid() {
 }
 
 // ---------------------------------------------------------------------------------------
+// Questions: thin-line accordion rows. The answer height animates with a grid-row transition.
+// ---------------------------------------------------------------------------------------
+const faqTints = [LAVENDER, SKY, ROSE, MINT];
+
+function FaqRow({ index, q, a, open, onToggle }: { index: number; q: string; a: string; open: boolean; onToggle: () => void }) {
+  const tint = faqTints[index % faqTints.length] ?? LAVENDER;
+  const panel = `faq-panel-${index}`;
+  return (
+    <li className="group border-b border-[#111111]/15 first:border-t">
+      <h3>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={panel}
+          onClick={onToggle}
+          className="flex w-full cursor-pointer items-start gap-4 py-6 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#111111] sm:gap-6 sm:py-7"
+        >
+          <span className="mt-[7px] w-7 shrink-0 text-[12px] font-bold tabular-nums tracking-[0.08em] text-[#8A8473]">
+            {String(index + 1).padStart(2, "0")}
+          </span>
+          <span className="flex-1">
+            <span
+              style={{ "--tint": tint } as CSSProperties}
+              className="bg-[linear-gradient(var(--tint),var(--tint))] bg-[length:0%_38%] bg-bottom-left bg-no-repeat text-[19px] font-bold leading-snug tracking-[-0.02em] transition-[background-size] duration-500 ease-out [box-decoration-break:clone] group-hover:bg-[length:100%_38%] sm:text-[23px]"
+            >
+              {q}
+            </span>
+          </span>
+          <span
+            className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-all duration-300 ${
+              open ? "rotate-45 border-[#111111] bg-[#111111] text-white" : "border-[#111111]/25 text-[#111111] group-hover:border-[#111111]"
+            }`}
+          >
+            <PlusIcon className="h-4 w-4" aria-hidden="true" />
+          </span>
+        </button>
+      </h3>
+      <div
+        id={panel}
+        role="region"
+        className={`grid transition-[grid-template-rows,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+          open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <p className="max-w-2xl pb-7 pl-11 pr-12 text-[16px] font-medium leading-[1.7] text-[#4A463C] sm:pl-[52px]">{a}</p>
+        </div>
+      </div>
+    </li>
+  );
+}
+
+function FaqList() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  return (
+    <ul role="list" className="lg:col-span-8">
+      {questions.map((item, i) => (
+        <FaqRow
+          key={item.q}
+          index={i}
+          q={item.q}
+          a={item.a}
+          open={openIndex === i}
+          onToggle={() => setOpenIndex((now) => (now === i ? null : i))}
+        />
+      ))}
+    </ul>
+  );
+}
+
+function FaqCollage() {
+  return (
+    <div aria-hidden="true" className="relative mt-10 hidden h-[220px] w-full max-w-[340px] lg:block">
+      <span className="absolute left-0 top-4 h-[150px] w-[150px] rounded-full" style={{ backgroundColor: LAVENDER }} />
+      <span className="absolute left-[92px] top-0 h-[96px] w-[96px] rounded-full" style={{ backgroundColor: MINT }} />
+      <span className="absolute bottom-0 left-[40px] h-[84px] w-[84px] rounded-[26px] rotate-[14deg]" style={{ backgroundColor: ROSE }} />
+      <span className="absolute right-[34px] top-[70px] h-[110px] w-[110px] rounded-t-full" style={{ backgroundColor: SKY }} />
+      <span className="absolute left-[96px] top-[96px] -rotate-[6deg] rounded-2xl rounded-bl-sm bg-white px-4 py-3 shadow-[0_12px_26px_rgba(40,30,0,0.12)]">
+        <span className="block font-serif text-[18px] italic leading-none">Ask us anything.</span>
+        <span className="mt-2 flex gap-1">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#111111]/30" />
+          <span className="h-1.5 w-1.5 rounded-full bg-[#111111]/30" />
+          <span className="h-1.5 w-1.5 rounded-full bg-[#111111]/30" />
+        </span>
+      </span>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------------------
 // The three miniature interfaces of the "details to live website" journey. Pure decoration
 // (hidden from screen readers); each part fades up in turn once the section is on screen.
 // ---------------------------------------------------------------------------------------
@@ -1254,24 +1344,48 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
 
         {/* Questions */}
         <section id="faq" className="scroll-mt-32 md:scroll-mt-24">
-          <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 px-6 py-16 sm:px-12 lg:grid-cols-12 lg:gap-16 lg:px-16 lg:py-24">
-            <h2 className={`${sectionTitle} lg:col-span-5`}>
-              Common <span className={accent}>questions.</span>
+          <div className="mx-auto w-full max-w-7xl px-6 py-16 sm:px-12 lg:px-16 lg:py-24">
+            <h2 className="text-[clamp(44px,9.6vw,132px)] font-extrabold uppercase leading-[0.92] tracking-[-0.045em]">
+              You ask,
+              <br />
+              <span className="font-serif font-normal normal-case italic tracking-[-0.03em]">we answer.</span>
             </h2>
 
-            <div className="flex flex-col gap-3 lg:col-span-7">
-              {questions.map((item) => (
-                <details key={item.q} className="group rounded-[20px] bg-white shadow-[0_4px_16px_rgba(40,30,0,0.04)]">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-[20px] px-6 py-5 text-[17px] font-bold [&::-webkit-details-marker]:hidden">
-                    {item.q}
-                    <ChevronDownIcon
-                      className="h-5 w-5 shrink-0 text-[#6B6657] transition-transform duration-200 group-open:rotate-180"
-                      aria-hidden="true"
-                    />
-                  </summary>
-                  <p className="px-6 pb-6 text-[15px] font-medium leading-[1.65] text-[#4A463C]">{item.a}</p>
-                </details>
-              ))}
+            <div className="mt-12 grid grid-cols-1 gap-10 lg:mt-16 lg:grid-cols-12 lg:gap-16">
+              <div className="lg:col-span-4">
+                <p className="max-w-xs text-[17px] font-medium leading-[1.55] text-[#4A463C]">
+                  The things people usually want to know before they say yes.
+                </p>
+                <FaqCollage />
+              </div>
+              <FaqList />
+            </div>
+
+            {/* Contact prompt: the same editorial voice, continuing straight on from the last row */}
+            <div className="mt-16 flex flex-col gap-8 border-t border-[#111111] pt-10 sm:mt-20 md:flex-row md:items-end md:justify-between">
+              <p className="text-[clamp(34px,6vw,84px)] font-extrabold leading-[0.98] tracking-[-0.04em]">
+                Still have questions?
+                <br />
+                <span className="font-serif font-normal italic tracking-[-0.02em]">Let's talk.</span>
+                <span className="ml-2 inline-block h-3 w-3 rounded-full align-middle sm:h-4 sm:w-4" style={{ backgroundColor: LAVENDER }} />
+              </p>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
+                <button type="button" onClick={() => goToForm("sample")} className={`${blackBtn} group`}>
+                  Get in touch
+                  <ArrowRightIcon className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </button>
+                {whatsappDigits && (
+                  <a
+                    href={`https://wa.me/${whatsappDigits}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 border-b border-[#111111]/40 pb-0.5 text-[15px] font-semibold transition-colors hover:border-[#111111]"
+                  >
+                    <PhoneIcon className="h-4 w-4" />
+                    Or message us on WhatsApp
+                  </a>
+                )}
+              </div>
             </div>
           </div>
         </section>
