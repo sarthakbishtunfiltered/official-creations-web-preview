@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Phone } from "lucide-react";
+import { PhoneIcon } from "./components/icons";
 import { HowItWorks } from "./components/HowItWorks";
 import { BuiltDifferent } from "./components/BuiltDifferent";
 import { SupportedNiches } from "./components/SupportedNiches";
@@ -55,7 +55,7 @@ function App({ access }: { access: TeamAccess }) {
               rel="noopener noreferrer"
               className="hidden sm:inline-flex items-center gap-2 px-5 py-2 border border-[#BCB6B7] bg-transparent text-[#111111] hover:bg-[#BCB6B7]/10 transition-colors duration-200 rounded-lg text-[14px] font-medium"
             >
-              <Phone className="w-3.5 h-3.5 fill-[#111111] stroke-none rotate-[10deg]" />
+              <PhoneIcon className="w-4 h-4 text-[#111111]" />
               Book a call
             </a>
           )}

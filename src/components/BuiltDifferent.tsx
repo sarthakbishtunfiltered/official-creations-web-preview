@@ -1,21 +1,21 @@
 import { motion } from "framer-motion";
-import { Layers, User, Send, Shield, Zap, Target, Phone, Sparkles } from "lucide-react";
+import { BoltIcon, IconBadge, LayersIcon, PhoneIcon, SendIcon, ShieldIcon, SparkIcon, TargetIcon, UserIcon } from "./icons";
 
 const processItems = [
   {
-    icon: Layers,
+    icon: LayersIcon,
     title: "Niche-specific templates",
     desc: "Every niche has its own layout, in a Simple and a Premium design.",
     badge: "Simple & Premium",
   },
   {
-    icon: User,
+    icon: UserIcon,
     title: "Smart personalization",
     desc: "Your business details fill the template instantly.",
     badge: "Filled from your details",
   },
   {
-    icon: Send,
+    icon: SendIcon,
     title: "Preview before you buy",
     desc: "Review the finished site first. Approve it and we get it ready to go live.",
     badge: "Preview first",
@@ -24,22 +24,22 @@ const processItems = [
 
 const valueCards = [
   {
-    icon: Shield,
+    icon: ShieldIcon,
     title: "Made for your industry",
     desc: "Layouts built around what your customers look for.",
   },
   {
-    icon: Zap,
+    icon: BoltIcon,
     title: "No waiting",
     desc: "See your website in seconds, not days.",
   },
   {
-    icon: Target,
+    icon: TargetIcon,
     title: "No guesswork",
     desc: "The preview shows the site as it will look.",
   },
   {
-    icon: Phone,
+    icon: PhoneIcon,
     title: "Ready for enquiries",
     desc: "Call and WhatsApp buttons use the number you give us.",
   },
@@ -108,9 +108,7 @@ export function BuiltDifferent() {
                     }`}
                   >
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-full bg-[#222222] border border-[#333333] text-white flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
-                        <Icon className="w-5 h-5 stroke-[1.8]" />
-                      </div>
+                      <IconBadge icon={Icon} size="sm" dark className="mt-0.5 sm:mt-0 !bg-[#222222] ring-1 ring-[#333333] !shadow-none" />
                       <div>
                         <h4 className="text-[15px] font-bold text-white">
                           {item.title}
@@ -146,9 +144,7 @@ export function BuiltDifferent() {
               className="bg-[#F4EFEF]/80 backdrop-blur-sm border border-[#D5CFD0] rounded-2xl p-6 sm:p-7 flex flex-col justify-between hover:bg-white transition-all duration-500 ease-in-out hover:-translate-y-[6px] hover:shadow-[0_16px_32px_rgba(0,0,0,0.08)] hover:border-[#111111]/30 group"
             >
               <div>
-                <div className="w-12 h-12 rounded-full border border-[#BCB6B7] bg-white/50 flex items-center justify-center text-[#111111] mb-6 group-hover:scale-[1.05] group-hover:bg-white transition-all duration-500 ease-in-out">
-                  <Icon className="w-5 h-5 stroke-[1.8]" />
-                </div>
+                <IconBadge icon={Icon} size="md" className="mb-6 group-hover:scale-[1.05] transition-transform duration-500 ease-in-out" />
 
                 <h3 className="text-[19px] font-bold text-[#111111] mb-2">
                   {card.title}
@@ -174,9 +170,7 @@ export function BuiltDifferent() {
         className="mt-6 bg-[#F4EFEF]/80 border border-[#D5CFD0] rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6"
       >
         <div className="flex items-center gap-3.5 shrink-0">
-          <div className="w-11 h-11 rounded-full bg-[#111111] text-white flex items-center justify-center shrink-0">
-            <Sparkles className="w-5 h-5 stroke-[2]" />
-          </div>
+          <IconBadge icon={SparkIcon} size="md" dark />
           <span className="font-bold text-[#111111] text-[15px] sm:text-[16px]">
             Preview first. Decide later.
           </span>

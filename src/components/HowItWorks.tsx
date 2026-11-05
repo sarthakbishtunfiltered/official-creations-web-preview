@@ -1,28 +1,28 @@
 import { motion } from "framer-motion";
-import { LayoutGrid, Pencil, Eye, Rocket } from "lucide-react";
+import { EyeIcon, IconBadge, LayoutIcon, PencilIcon, RocketIcon } from "./icons";
 
 const steps = [
   {
     num: "01",
-    icon: LayoutGrid,
+    icon: LayoutIcon,
     title: "Choose the niche",
     desc: "Pick the business category and a Simple or Premium design.",
   },
   {
     num: "02",
-    icon: Pencil,
+    icon: PencilIcon,
     title: "Add the details",
     desc: "Enter the business name, owner, phone and city. Add a logo, photos and more if you have them.",
   },
   {
     num: "03",
-    icon: Eye,
+    icon: EyeIcon,
     title: "Instant preview",
     desc: "See a website built from those details, in seconds.",
   },
   {
     num: "04",
-    icon: Rocket,
+    icon: RocketIcon,
     title: "Get the website",
     desc: "Approve the preview and we get the site ready to go live.",
   },
@@ -71,9 +71,7 @@ export function HowItWorks() {
               <div>
                 {/* Top Icon & Step indicator */}
                 <div className="flex items-center justify-between w-full">
-                  <div className="w-14 h-14 rounded-full bg-[#111111] flex items-center justify-center text-white shrink-0 group-hover:scale-[1.05] transition-transform duration-500 ease-in-out">
-                    <Icon className="w-6 h-6 stroke-[1.8]" />
-                  </div>
+                  <IconBadge icon={Icon} size="lg" dark className="group-hover:scale-[1.05] transition-transform duration-500 ease-in-out" />
                   <div className="flex-1 border-t-2 border-dotted border-[#BCB6B7] mx-3" />
                   <div className="w-7 h-7 rounded-full bg-[#111111] text-white text-[11px] font-bold flex items-center justify-center shrink-0">
                     {step.num}

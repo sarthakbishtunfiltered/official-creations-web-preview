@@ -1,6 +1,6 @@
 import { useId, useRef, useState } from "react";
 import type { ChangeEvent, KeyboardEvent, ReactNode } from "react";
-import { Link2, Plus, Trash2, Upload } from "lucide-react";
+import { LinkIcon, PlusIcon, TrashIcon, UploadIcon } from "../icons";
 import type { FieldDef } from "../../data/fields";
 import { MAX_FILE_BYTES, fileToCompressedDataUrl } from "../../lib/image";
 import { normalizeUrl } from "../../lib/siteData";
@@ -102,7 +102,7 @@ function ImageInput({ label, value, onChange, maxDim = 1600 }: ImageInputProps) 
           />
           <div className="flex flex-wrap gap-2">
             <button type="button" className={smallButtonClass} onClick={() => fileRef.current?.click()} disabled={busy}>
-              <Upload className="h-3.5 w-3.5" />
+              <UploadIcon className="h-3.5 w-3.5" />
               Replace
             </button>
             <button
@@ -114,7 +114,7 @@ function ImageInput({ label, value, onChange, maxDim = 1600 }: ImageInputProps) 
                 setMessage("");
               }}
             >
-              <Trash2 className="h-3.5 w-3.5" />
+              <TrashIcon className="h-3.5 w-3.5" />
               Remove
             </button>
           </div>
@@ -122,7 +122,7 @@ function ImageInput({ label, value, onChange, maxDim = 1600 }: ImageInputProps) 
       ) : (
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <button type="button" className={smallButtonClass} onClick={() => fileRef.current?.click()} disabled={busy}>
-            <Upload className="h-3.5 w-3.5" />
+            <UploadIcon className="h-3.5 w-3.5" />
             {busy ? "Processing..." : "Upload image"}
           </button>
           <span className="text-[12px] font-medium text-[#6B6566]">or</span>
@@ -140,7 +140,7 @@ function ImageInput({ label, value, onChange, maxDim = 1600 }: ImageInputProps) 
             />
             {draft.trim() && (
               <button type="button" className={smallButtonClass} onClick={commitLink}>
-                <Link2 className="h-3.5 w-3.5" />
+                <LinkIcon className="h-3.5 w-3.5" />
                 Use link
               </button>
             )}
@@ -209,7 +209,7 @@ function ListInput({ def, items, onChange }: ListInputProps) {
               onClick={() => removeItem(item.id)}
               className="rounded-md p-1 text-[#6B6566] transition-colors duration-200 hover:bg-[#F4EFEF] hover:text-[#111111]"
             >
-              <Trash2 className="h-4 w-4" />
+              <TrashIcon className="h-4 w-4" />
             </button>
           </div>
 
@@ -264,7 +264,7 @@ function ListInput({ def, items, onChange }: ListInputProps) {
 
       <div className="flex items-center gap-3">
         <button type="button" className={smallButtonClass} onClick={addItem} disabled={items.length >= max}>
-          <Plus className="h-3.5 w-3.5" />
+          <PlusIcon className="h-3.5 w-3.5" />
           Add {itemName}
         </button>
         <span className="text-[12px] font-medium text-[#6B6566]">

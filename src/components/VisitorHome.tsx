@@ -1,7 +1,18 @@
 import { useEffect, useState } from "react";
 import type { MouseEvent } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Check, ChevronDown, Phone } from "lucide-react";
+import {
+  ArrowRightIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  DevicesIcon,
+  EyeIcon,
+  IconBadge,
+  LayoutIcon,
+  PencilIcon,
+  PhoneIcon,
+  RocketIcon,
+} from "./icons";
 import { siteConfig } from "../config";
 import { proof } from "../data/proof";
 import { supabase } from "../lib/supabase";
@@ -78,16 +89,19 @@ const delivery = proof.deliveryTime.trim();
 
 const steps = [
   {
+    icon: PencilIcon,
     title: "Tell us about your business",
     desc: "Send your business name, what you do, your city and your budget. The form takes about two minutes.",
   },
   {
+    icon: EyeIcon,
     title: "See your website",
     desc: `Our team makes a website with your name and details already on it${
       delivery ? `, ${delivery}` : ""
     }, and shows you the finished result.`,
   },
   {
+    icon: RocketIcon,
     title: "Take it live",
     desc: "Like it? We get it ready to go live. Want changes? Tell us and we update it.",
   },
@@ -119,13 +133,12 @@ const RED = "#FF5A3C";
 const YELLOW = "#FDB927";
 const GREEN = "#00C26E";
 const BLUE = "#6C63F0";
-const stepColors = [RED, YELLOW, GREEN];
 
 const features = [
-  { title: "Made for your industry", desc: "Templates built for your niche and its customers." },
-  { title: "Built for enquiries", desc: "Call and WhatsApp buttons are part of every site." },
-  { title: "Fully responsive", desc: "Looks right on phones, tablets and desktops." },
-  { title: "Easy changes", desc: "Tell us what to change and we update your site." },
+  { icon: LayoutIcon, title: "Made for your industry", desc: "Templates built for your niche and its customers." },
+  { icon: PhoneIcon, title: "Built for enquiries", desc: "Call and WhatsApp buttons are part of every site." },
+  { icon: DevicesIcon, title: "Fully responsive", desc: "Looks right on phones, tablets and desktops." },
+  { icon: PencilIcon, title: "Easy changes", desc: "Tell us what to change and we update your site." },
 ];
 
 // Chalky edges: a slightly wobbly outline and a few speckles, like the shapes were drawn with chalk.
@@ -297,7 +310,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
                 rel="noopener noreferrer"
                 className="hidden items-center gap-2 text-[14px] font-semibold md:inline-flex"
               >
-                <Phone className="h-3.5 w-3.5 rotate-[10deg] fill-[#111111] stroke-none" />
+                <PhoneIcon className="h-4 w-4" />
                 Chat with us
               </a>
             )}
@@ -342,7 +355,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
               <div className="mt-8 flex flex-wrap justify-center gap-3">
                 <button type="button" onClick={() => goToForm("sample")} className={blackBtn}>
                   Request a sample
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  <ArrowRightIcon className="h-4 w-4" />
                 </button>
                 <a href="#how-it-works" className={outlineBtn}>
                   How it works
@@ -351,16 +364,13 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
 
               <ul className="mt-8 flex flex-wrap justify-center gap-x-7 gap-y-2 text-[14px] font-semibold">
                 {[
-                  { line: "Your details go straight to our team", color: RED },
-                  { line: "We contact you on the number you give", color: YELLOW },
-                  { line: "Sending the form does not start an order", color: GREEN },
-                ].map(({ line, color }) => (
+                  "Your details go straight to our team",
+                  "We contact you on the number you give",
+                  "Sending the form does not start an order",
+                ].map((line) => (
                   <li key={line} className="flex items-center gap-2">
-                    <span
-                      className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full text-[#111111]"
-                      style={{ backgroundColor: color }}
-                    >
-                      <Check className="h-3 w-3 stroke-[3]" aria-hidden="true" />
+                    <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-[#111111] text-white">
+                      <CheckIcon className="h-3 w-3" />
                     </span>
                     {line}
                   </li>
@@ -447,13 +457,9 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
               <ol className="mt-10 flex flex-col gap-4">
                 {steps.map((step, index) => (
                   <li key={step.title} className={`${card} flex items-start gap-5 p-6`}>
-                    <span
-                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-[20px] font-extrabold"
-                      style={{ backgroundColor: stepColors[index] }}
-                    >
-                      {index + 1}
-                    </span>
+                    <IconBadge icon={step.icon} size="lg" />
                     <div>
+                      <p className="mb-1 text-[12px] font-bold uppercase tracking-[0.14em] text-[#6B6657]">Step {index + 1}</p>
                       <h3 className="mb-1.5 text-[20px] font-extrabold leading-[1.15] tracking-[-0.02em]">{step.title}</h3>
                       <p className="text-[15px] font-medium leading-[1.6] text-[#4A463C]">{step.desc}</p>
                     </div>
@@ -498,7 +504,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
                     <ul className="mt-5 flex flex-1 flex-col gap-2.5 text-[15px] font-medium leading-[1.5] text-[#4A463C]">
                       {pack.points.map((point) => (
                         <li key={point} className="flex items-start gap-2.5">
-                          <Check className="mt-0.5 h-4 w-4 shrink-0 stroke-[3] text-[#00A85C]" aria-hidden="true" />
+                          <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-[#111111]" />
                           {point}
                         </li>
                       ))}
@@ -545,12 +551,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
                 const Icon = niche.icon;
                 return (
                   <div key={`${niche.id}-${idx}`} className="flex shrink-0 cursor-default select-none items-center gap-3.5 pr-20">
-                    <span
-                      className="flex h-10 w-10 items-center justify-center rounded-full"
-                      style={{ backgroundColor: [RED, YELLOW, GREEN, BLUE][idx % 4] }}
-                    >
-                      <Icon className="h-5 w-5 stroke-[2] text-[#111111]" />
-                    </span>
+                    <IconBadge icon={Icon} size="md" />
                     <span className="whitespace-nowrap text-[19px] font-bold tracking-[-0.01em] sm:text-[22px]">{niche.label}</span>
                   </div>
                 );
@@ -562,6 +563,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
             <ul className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {features.map((f) => (
                 <li key={f.title} className="rounded-[24px] bg-[#EDEAE2] p-6">
+                  <IconBadge icon={f.icon} size="md" className="mb-5" />
                   <h3 className="text-[17px] font-extrabold tracking-[-0.01em]">{f.title}</h3>
                   <p className="mt-2 text-[14px] font-medium leading-[1.55] text-[#4A463C]">{f.desc}</p>
                 </li>
@@ -579,14 +581,13 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
               </h2>
 
               <ul className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-                {proof.testimonials.map((item, index) => (
+                {proof.testimonials.map((item) => (
                   <li key={item.name + item.business} className={`${card} flex flex-col p-7`}>
                     <blockquote className="flex-1 text-[19px] font-semibold leading-[1.5] tracking-[-0.01em]">“{item.quote}”</blockquote>
                     <div className="mt-7 flex items-center gap-3">
                       <span
                         aria-hidden="true"
-                        className="flex h-11 w-11 items-center justify-center rounded-full text-[17px] font-extrabold"
-                        style={{ backgroundColor: [YELLOW, GREEN, RED, BLUE][index % 4] }}
+                        className="flex h-11 w-11 items-center justify-center rounded-full bg-[#111111] text-[16px] font-bold text-white"
                       >
                         {item.name.trim().charAt(0).toUpperCase()}
                       </span>
@@ -614,7 +615,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
                 <details key={item.q} className="group rounded-[20px] bg-white shadow-[0_4px_16px_rgba(40,30,0,0.04)]">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-[20px] px-6 py-5 text-[17px] font-bold [&::-webkit-details-marker]:hidden">
                     {item.q}
-                    <ChevronDown
+                    <ChevronDownIcon
                       className="h-5 w-5 shrink-0 text-[#6B6657] transition-transform duration-200 group-open:rotate-180"
                       aria-hidden="true"
                     />
@@ -641,7 +642,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
               className="relative mt-9 inline-flex cursor-pointer items-center gap-2 rounded-xl bg-white px-8 py-4 text-[16px] font-semibold text-[#111111] transition-colors hover:bg-[#FDB927]"
             >
               Request a sample
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              <ArrowRightIcon className="h-4 w-4" />
             </button>
           </div>
         </section>

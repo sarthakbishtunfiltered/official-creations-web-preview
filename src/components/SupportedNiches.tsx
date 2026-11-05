@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Sparkles, Phone, Smartphone, Palette } from "lucide-react";
+import { DevicesIcon, IconBadge, LayoutIcon, PencilIcon, PhoneIcon } from "./icons";
 import { niches } from "../data/niches";
 
 // Four copies so the row loops seamlessly (the animation moves exactly half the track).
@@ -7,22 +7,22 @@ const marqueeItems = [...niches, ...niches, ...niches, ...niches];
 
 const featureCards = [
   {
-    icon: Sparkles,
+    icon: LayoutIcon,
     title: "Industry-specific",
     desc: "Templates made for your niche and its customers.",
   },
   {
-    icon: Phone,
+    icon: PhoneIcon,
     title: "Built for enquiries",
     desc: "Call and WhatsApp buttons are part of every site.",
   },
   {
-    icon: Smartphone,
+    icon: DevicesIcon,
     title: "Fully responsive",
     desc: "Looks right on phones, tablets and desktops.",
   },
   {
-    icon: Palette,
+    icon: PencilIcon,
     title: "Easy changes",
     desc: "Tell us what to change and we'll update your site.",
   },
@@ -100,7 +100,7 @@ export function SupportedNiches({
                 key={`${niche.id}-${idx}`}
                 className="flex items-center gap-3.5 shrink-0 cursor-default select-none pr-24"
               >
-                <Icon className="w-[22px] h-[22px] text-[#111111] stroke-[1.6] shrink-0" />
+                <Icon className="w-[22px] h-[22px] text-[#111111] shrink-0" />
                 <span className="text-[17px] sm:text-[19px] font-medium text-[#111111] tracking-[-0.01em] whitespace-nowrap">
                   {niche.label}
                 </span>
@@ -130,10 +130,7 @@ export function SupportedNiches({
                          hover:border-[#111111]/20
                          hover:bg-[#EDEAEA]"
             >
-              <Icon
-                className="w-5 h-5 text-[#111111] stroke-[1.75]
-                           transition-transform duration-300 group-hover:scale-[1.06]"
-              />
+              <IconBadge icon={Icon} size="md" className="transition-transform duration-300 group-hover:scale-[1.06]" />
               <div>
                 <h4 className="text-[15px] font-bold text-[#111111] mb-1.5 tracking-tight">
                   {title}

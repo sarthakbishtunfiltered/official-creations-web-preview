@@ -1,15 +1,15 @@
 import { useState } from "react";
 import type { FocusEvent } from "react";
-import { ArrowRight, Monitor, Smartphone, Zap } from "lucide-react";
+import { ArrowRightIcon, BoltIcon, IconBadge, MobileIcon, MonitorIcon } from "./icons";
 import { designs } from "../data/niches";
 import { localPreviewUrl, previewUrl } from "../lib/previewStore";
 import type { SiteData } from "../lib/siteData";
 import { templates } from "../templates/registry";
 
 const emptyPoints = [
-  { icon: Zap, label: "Live preview in seconds", sub: "Fill in the details above and press Generate." },
-  { icon: Monitor, label: "Built from your details", sub: "Your name, contact info and photos go straight in." },
-  { icon: Smartphone, label: "Works on every screen", sub: "Check it on a phone, tablet or desktop." },
+  { icon: BoltIcon, label: "Live preview in seconds", sub: "Fill in the details above and press Generate." },
+  { icon: MonitorIcon, label: "Built from your details", sub: "Your name, contact info and photos go straight in." },
+  { icon: MobileIcon, label: "Works on every screen", sub: "Check it on a phone, tablet or desktop." },
 ];
 
 interface PreviewPanelProps {
@@ -36,7 +36,7 @@ export function PreviewPanel({ data, previewId }: PreviewPanelProps) {
       <div className="flex flex-col gap-8 p-7 sm:p-8">
         <div>
           <div className="mb-5 flex items-center gap-2">
-            <Zap className="h-4 w-4 text-[#111111]" />
+            <BoltIcon className="h-4 w-4 text-[#111111]" />
             <span className="text-[12px] font-bold uppercase tracking-[0.12em] text-[#111111]">Instant Preview</span>
           </div>
           <h3 className="text-[28px] font-bold leading-[1.1] tracking-[-0.02em] text-[#111111] sm:text-[32px]">
@@ -47,9 +47,7 @@ export function PreviewPanel({ data, previewId }: PreviewPanelProps) {
         <div className="flex flex-col gap-4">
           {emptyPoints.map(({ icon: Icon, label, sub }) => (
             <div key={label} className="flex items-start gap-3">
-              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#111111] text-white">
-                <Icon className="h-3.5 w-3.5" />
-              </div>
+              <IconBadge icon={Icon} size="sm" className="mt-0.5 !h-8 !w-8 !rounded-[10px]" />
               <div>
                 <span className="block text-[14px] font-bold text-[#111111]">{label}</span>
                 <span className="text-[12px] font-medium text-[#6B6566]">{sub}</span>
@@ -80,7 +78,7 @@ export function PreviewPanel({ data, previewId }: PreviewPanelProps) {
     <div className="flex flex-col gap-6 p-7 sm:p-8">
       <div>
         <div className="mb-5 flex items-center gap-2">
-          <Zap className="h-4 w-4 text-[#111111]" />
+          <BoltIcon className="h-4 w-4 text-[#111111]" />
           <span className="text-[12px] font-bold uppercase tracking-[0.12em] text-[#111111]">Instant Preview</span>
         </div>
         <h3 className="text-[28px] font-bold leading-[1.1] tracking-[-0.02em] text-[#111111] sm:text-[32px]">
@@ -122,7 +120,7 @@ export function PreviewPanel({ data, previewId }: PreviewPanelProps) {
               className="inline-flex items-center gap-2 rounded-xl bg-[#111111] px-5 py-3 text-[14px] font-semibold text-white transition-colors duration-200 hover:bg-black"
             >
               Open preview in a new tab
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRightIcon className="h-4 w-4" />
             </a>
           </div>
           <p className="text-[12px] font-medium text-[#6B6566]">

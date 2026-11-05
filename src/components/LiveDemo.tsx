@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowRightIcon, ChevronDownIcon } from "./icons";
 import { coreFields, getGroups, nicheOwnedKeys } from "../data/fields";
 import type { Group } from "../data/fields";
 import { designs, getNiche } from "../data/niches";
@@ -246,7 +246,7 @@ export function LiveDemo({ access }: { access: TeamAccess }) {
             {filled > 0 && (
               <span className="rounded-full bg-[#111111] px-2 py-0.5 text-[11px] font-semibold text-white">{filled} added</span>
             )}
-            <ChevronDown className="h-4 w-4 text-[#6B6566] transition-transform duration-200 group-open:rotate-180" />
+            <ChevronDownIcon className="h-4 w-4 text-[#6B6566] transition-transform duration-200 group-open:rotate-180" />
           </span>
         </summary>
 
@@ -439,7 +439,7 @@ export function LiveDemo({ access }: { access: TeamAccess }) {
                   className="flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl bg-[#111111] py-3.5 text-[15px] font-semibold text-white transition-colors duration-200 hover:bg-black disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {saving ? "Creating your link..." : linkToken ? "Update my preview" : "Generate my preview"}
-                  {!saving && <ArrowRight className="h-4 w-4" />}
+                  {!saving && <ArrowRightIcon className="h-4 w-4" />}
                 </button>
                 <button
                   type="button"

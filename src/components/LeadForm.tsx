@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
-import { ArrowRight, Check, ChevronDown } from "lucide-react";
+import { ArrowRightIcon, CheckIcon, ChevronDownIcon } from "./icons";
 import { siteConfig } from "../config";
 import { BUDGET_OPTIONS, TIMELINE_OPTIONS, submitLead } from "../lib/leads";
 import type { LeadInput, LeadKind } from "../lib/leads";
@@ -153,7 +153,7 @@ export function LeadForm({ kind, onKindChange, packageName = null, onClearPackag
         className="flex flex-col items-start gap-4 rounded-[28px] bg-white p-6 shadow-[0_20px_60px_rgba(40,30,0,0.10)] sm:p-8"
       >
         <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-800">
-          <Check className="h-5 w-5" aria-hidden="true" />
+          <CheckIcon className="h-5 w-5" aria-hidden="true" />
         </span>
         <h3 className="text-[28px] font-bold leading-[1.1] tracking-[-0.02em]">
           Thank you. <span className="font-serif font-normal italic">We have your request.</span>
@@ -359,7 +359,7 @@ export function LeadForm({ kind, onKindChange, packageName = null, onClearPackag
                 {moreFilled} added
               </span>
             )}
-            <ChevronDown
+            <ChevronDownIcon
               className="h-4 w-4 text-[#6B6566] transition-transform duration-200 group-open:rotate-180"
               aria-hidden="true"
             />
@@ -461,7 +461,7 @@ export function LeadForm({ kind, onKindChange, packageName = null, onClearPackag
         className="flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl bg-[#111111] py-4 text-[16px] font-semibold text-white transition-colors duration-200 hover:bg-black disabled:cursor-not-allowed disabled:opacity-60"
       >
         {sending ? "Sending..." : kind === "sample" ? "Request my sample" : "Send my order request"}
-        {!sending && <ArrowRight className="h-4 w-4" />}
+        {!sending && <ArrowRightIcon className="h-4 w-4" />}
       </button>
 
       <p className="text-center text-[12px] font-medium text-[#6B6566]">

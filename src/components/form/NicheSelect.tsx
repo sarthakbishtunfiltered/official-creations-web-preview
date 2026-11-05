@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
-import { Check, ChevronDown } from "lucide-react";
+import { CheckIcon, ChevronDownIcon, IconBadge } from "../icons";
 import { getNiche, niches } from "../../data/niches";
 import { inputClass } from "./Field";
 
@@ -114,14 +114,12 @@ export function NicheSelect({ value, onChange, invalid, describedBy, fieldClass 
         }`}
       >
         {SelectedIcon && (
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#111111] text-white">
-            <SelectedIcon className="h-4 w-4 stroke-[1.8]" />
-          </span>
+          <IconBadge icon={SelectedIcon} size="sm" className="!h-8 !w-8 !rounded-[10px]" />
         )}
         <span className={`truncate ${selected ? "" : "text-[#A09A9B]"}`}>
           {selected ? selected.label : "Select the business niche"}
         </span>
-        <ChevronDown
+        <ChevronDownIcon
           className={`pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B6566] transition-transform duration-200 ${
             open ? "rotate-180" : ""
           }`}
@@ -152,17 +150,9 @@ export function NicheSelect({ value, onChange, invalid, describedBy, fieldClass 
                   i === active ? "bg-[#F4EFEF]" : ""
                 }`}
               >
-                <span
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors duration-100 ${
-                    isSelected
-                      ? "border-[#111111] bg-[#111111] text-white"
-                      : "border-[#D5CFD0] bg-white text-[#111111]"
-                  }`}
-                >
-                  <Icon className="h-4 w-4 stroke-[1.8]" />
-                </span>
+                <IconBadge icon={Icon} size="sm" dark={isSelected} className="!h-8 !w-8 !rounded-[10px]" />
                 <span className="flex-1">{n.label}</span>
-                {isSelected && <Check className="h-4 w-4 shrink-0 text-[#111111]" />}
+                {isSelected && <CheckIcon className="h-4 w-4 shrink-0 text-[#111111]" />}
               </li>
             );
           })}
