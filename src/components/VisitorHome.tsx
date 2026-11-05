@@ -9,9 +9,10 @@ import {
   EyeIcon,
   IconBadge,
   LayoutIcon,
+  MobileIcon,
   PencilIcon,
   PhoneIcon,
-  RocketIcon,
+  SparkIcon,
 } from "./icons";
 import { siteConfig } from "../config";
 import { proof } from "../data/proof";
@@ -89,21 +90,25 @@ const delivery = proof.deliveryTime.trim();
 
 const steps = [
   {
-    icon: PencilIcon,
-    title: "Tell us about your business",
-    desc: "Send your business name, what you do, your city and your budget. The form takes about two minutes.",
+    num: "01",
+    title: "Tell us",
+    label: "Your input",
+    accent: "#FF5A3C",
+    desc: "Share your business details, requirements and budget.",
   },
   {
-    icon: EyeIcon,
-    title: "See your website",
-    desc: `Our team makes a website with your name and details already on it${
-      delivery ? `, ${delivery}` : ""
-    }, and shows you the finished result.`,
+    num: "02",
+    title: "See it",
+    label: "Your website",
+    accent: "#6C63F0",
+    desc: `Explore your personalised website preview${delivery ? `, ready ${delivery}` : ""}.`,
   },
   {
-    icon: RocketIcon,
-    title: "Take it live",
-    desc: "Like it? We get it ready to go live. Want changes? Tell us and we update it.",
+    num: "03",
+    title: "Go live",
+    label: "Your launch",
+    accent: "#00C26E",
+    desc: "Approve the design and get your website ready to launch.",
   },
 ];
 
@@ -207,6 +212,133 @@ const blackBtn =
   "inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#111111] px-7 py-3.5 text-[16px] font-semibold text-white transition-colors duration-200 hover:bg-black";
 const outlineBtn =
   "inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#111111] px-7 py-3.5 text-[16px] font-semibold text-[#111111] transition-colors duration-200 hover:bg-[#111111] hover:text-white";
+
+// ---------------------------------------------------------------------------------------
+// The three miniature interfaces of the "details to live website" journey. Pure decoration
+// (hidden from screen readers); each part fades up in turn once the section is on screen.
+// ---------------------------------------------------------------------------------------
+const miniShell =
+  "w-full max-w-[200px] rounded-xl bg-white p-3 shadow-[0_10px_26px_rgba(40,30,0,0.10)] ring-1 ring-black/[0.04] transition-all duration-500 ease-out group-hover:-translate-y-1.5 group-hover:shadow-[0_18px_34px_rgba(40,30,0,0.14)]";
+
+function rise(i: number) {
+  return {
+    initial: { opacity: 0, y: 8 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true },
+    transition: { duration: 0.5, ease: "easeOut", delay: 0.7 + i * 0.12 },
+  };
+}
+
+function MiniForm() {
+  const label = "mb-1 block text-[7px] font-bold uppercase tracking-[0.12em] text-[#8A8473]";
+  const field = "flex h-[18px] items-center rounded-[5px] border border-[#E9E4D6] bg-[#FAF8F2] px-1.5";
+  return (
+    <div aria-hidden="true" className={miniShell}>
+      <motion.div {...rise(0)} className="mb-2.5 flex items-center gap-1.5">
+        <span className="h-4 w-4 rounded-full bg-[#FF5A3C]" />
+        <span className="h-1.5 w-12 rounded-full bg-[#111111]/80" />
+      </motion.div>
+      <motion.div {...rise(1)} className="mb-2">
+        <span className={label}>Business name</span>
+        <div className={field}>
+          <span className="h-1 w-14 rounded-full bg-[#111111]/70" />
+          <span className="ml-0.5 h-2.5 w-px bg-[#FF5A3C]" />
+        </div>
+      </motion.div>
+      <motion.div {...rise(2)} className="mb-2">
+        <span className={label}>Industry</span>
+        <div className={`${field} justify-between`}>
+          <span className="h-1 w-10 rounded-full bg-[#111111]/60" />
+          <span className="h-1.5 w-1.5 rotate-45 border-b border-r border-[#8A8473]" />
+        </div>
+      </motion.div>
+      <motion.div {...rise(3)}>
+        <span className={label}>Requirements</span>
+        <div className="flex h-8 flex-col justify-center gap-1 rounded-[5px] border border-[#E9E4D6] bg-[#FAF8F2] px-1.5">
+          <span className="h-1 w-full rounded-full bg-[#111111]/20" />
+          <span className="h-1 w-3/5 rounded-full bg-[#111111]/20" />
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function MiniBrowser() {
+  return (
+    <div aria-hidden="true" className={`${miniShell} p-0`}>
+      <div className="flex items-center gap-1 border-b border-[#EFEBDF] px-2.5 py-2">
+        <span className="h-1.5 w-1.5 rounded-full bg-[#FF5A3C]" />
+        <span className="h-1.5 w-1.5 rounded-full bg-[#FDB927]" />
+        <span className="h-1.5 w-1.5 rounded-full bg-[#00C26E]" />
+        <span className="ml-1.5 h-2.5 flex-1 rounded-full bg-[#F3EFE4]" />
+      </div>
+      <div className="p-2.5">
+        <motion.div {...rise(0)} className="mb-2.5 flex items-center justify-between">
+          <span className="h-2.5 w-2.5 rounded-[3px] bg-[#111111]" />
+          <span className="flex items-center gap-1.5">
+            <span className="h-1 w-3 rounded-full bg-[#111111]/30" />
+            <span className="h-1 w-3 rounded-full bg-[#111111]/30" />
+            <span className="h-2 w-5 rounded-full bg-[#111111]" />
+          </span>
+        </motion.div>
+        <motion.div {...rise(1)} className="mb-2.5 flex items-center gap-2">
+          <div className="flex-1">
+            <span className="mb-1 block h-1.5 w-full rounded-full bg-[#111111]" />
+            <span className="mb-1.5 block h-1.5 w-2/3 rounded-full bg-[#111111]" />
+            <span className="mb-0.5 block h-1 w-full rounded-full bg-[#111111]/20" />
+            <span className="mb-2 block h-1 w-4/5 rounded-full bg-[#111111]/20" />
+            <span className="block h-2.5 w-9 rounded-full bg-[#6C63F0]" />
+          </div>
+          <div className="relative h-[52px] w-[58px] shrink-0 overflow-hidden rounded-lg bg-[#EDEAE2]">
+            <span className="absolute -bottom-3 -left-2 h-8 w-8 rounded-full bg-[#FDB927]" />
+            <span className="absolute -right-2 top-1 h-7 w-7 rounded-full bg-[#00C26E]/80" />
+          </div>
+        </motion.div>
+        <motion.div {...rise(2)} className="grid grid-cols-3 gap-1.5">
+          {[0, 1, 2].map((n) => (
+            <div key={n}>
+              <span className="mb-1 block h-5 rounded-[4px] bg-[#F3EFE4]" />
+              <span className="block h-1 w-4/5 rounded-full bg-[#111111]/20" />
+            </div>
+          ))}
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+function MiniLaunch() {
+  return (
+    <div aria-hidden="true" className={`${miniShell} relative text-center`}>
+      <span className="absolute right-3 top-3 h-1.5 w-1.5 rounded-full bg-[#FDB927]" />
+      <span className="absolute left-3 top-6 h-1.5 w-1.5 rotate-45 bg-[#6C63F0]" />
+      <span className="absolute bottom-[52px] right-4 h-1 w-1 rounded-full bg-[#FF5A3C]" />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.6 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true }}
+        transition={{ type: "spring", stiffness: 260, damping: 16, delay: 0.9 }}
+        className="mx-auto mb-2 mt-1 flex h-9 w-9 items-center justify-center rounded-full bg-[#00C26E]/15 text-[#00A85C] ring-1 ring-[#00C26E]/30"
+      >
+        <CheckIcon className="h-[18px] w-[18px]" />
+      </motion.div>
+      <motion.div {...rise(1)}>
+        <p className="text-[10px] font-bold leading-none">Design approved</p>
+        <span className="mx-auto mt-1.5 block h-1 w-16 rounded-full bg-[#111111]/20" />
+        <span className="mx-auto mt-1 block h-1 w-11 rounded-full bg-[#111111]/20" />
+      </motion.div>
+      <motion.div
+        {...rise(2)}
+        className="mt-3 flex items-center justify-center gap-1.5 rounded-full bg-[#111111] py-1.5 text-[8px] font-bold uppercase tracking-[0.14em] text-white"
+      >
+        Go live
+        <ArrowRightIcon className="h-2.5 w-2.5" />
+      </motion.div>
+    </div>
+  );
+}
+
+const miniatures = [MiniForm, MiniBrowser, MiniLaunch];
 
 // What the public sees at the homepage: the pitch with the request form beside it, then the
 // proof from src/data/proof.ts. Team members see the generator instead (see Home.tsx).
@@ -448,43 +580,165 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
 
         {/* How it works: the steps really are in order */}
         <section id="how-it-works" className="scroll-mt-32 px-3 sm:px-6 md:scroll-mt-24">
-          <div className="relative mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-10 overflow-hidden rounded-[36px] bg-[#EDEAE2] px-6 py-16 sm:px-12 sm:py-20 lg:grid-cols-12 lg:gap-12 lg:px-16 lg:py-24">
-            <div className="lg:col-span-6">
-              <h2 className={sectionTitle}>
-                From your details to <span className={accent}>a live website.</span>
+          <div className="relative isolate mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-10 overflow-hidden rounded-[36px] bg-[radial-gradient(ellipse_at_72%_45%,#FDFBF5_0%,#F6F2E8_48%,#ECE7DA_100%)] px-6 py-16 sm:px-12 sm:py-20 lg:gap-12 lg:px-16 lg:py-24 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+            {/* Very faint paper grain over the warm gradient */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 -z-10 opacity-[0.07]"
+              style={{
+                backgroundImage:
+                  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .25 0 0 0 0 .2 0 0 0 0 .1 0 0 0 1.4 -.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+              }}
+            />
+
+            <div className="relative z-10">
+              <h2 className={`${sectionTitle} max-w-3xl`}>
+                From your details to <span className={`${accent} whitespace-nowrap`}>a live website.</span>
               </h2>
 
-              <ol className="mt-10 flex flex-col gap-4">
-                {steps.map((step, index) => (
-                  <li key={step.title} className={`${card} flex items-start gap-5 p-6`}>
-                    <IconBadge icon={step.icon} size="lg" />
-                    <div>
-                      <p className="mb-1 text-[12px] font-bold uppercase tracking-[0.14em] text-[#6B6657]">Step {index + 1}</p>
-                      <h3 className="mb-1.5 text-[20px] font-extrabold leading-[1.15] tracking-[-0.02em]">{step.title}</h3>
-                      <p className="text-[15px] font-medium leading-[1.6] text-[#4A463C]">{step.desc}</p>
-                    </div>
-                  </li>
-                ))}
+              {/* One continuous journey: a thin line runs through three stages, left to right
+                  (top to bottom on a phone) */}
+              <ol className="mt-12 grid grid-cols-1 gap-x-8 md:mt-14 md:grid-cols-3">
+                {steps.map((step, index) => {
+                  const Mini = miniatures[index] ?? MiniForm;
+                  const last = index === steps.length - 1;
+                  const lineDelay = 0.25 + index * 0.55;
+                  return (
+                    <li key={step.title} className="group relative pb-12 pl-10 last:pb-0 md:pb-0 md:pl-0">
+                      {/* Phone: the line runs down the left edge */}
+                      {!last && (
+                        <motion.div
+                          aria-hidden="true"
+                          initial={{ scaleY: 0 }}
+                          whileInView={{ scaleY: 1 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.55, ease: "easeInOut", delay: lineDelay }}
+                          style={{ transformOrigin: "top" }}
+                          className="absolute bottom-0 left-[6px] top-[34px] w-px bg-[#111111]/20 md:hidden"
+                        />
+                      )}
+                      <motion.div
+                        initial={{ opacity: 0, y: 18 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6, ease: "easeOut", delay: index * 0.18 }}
+                      >
+                        <p className="text-[56px] font-extrabold leading-none tracking-[-0.06em] transition-transform duration-500 group-hover:-translate-y-0.5 lg:text-[68px]">
+                          {step.num}
+                        </p>
+
+                        {/* The marker sits on the line */}
+                        <div className="relative mt-5 hidden h-4 md:block">
+                          <motion.div
+                            aria-hidden="true"
+                            initial={{ scale: 0 }}
+                            whileInView={{ scale: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ type: "spring", stiffness: 300, damping: 18, delay: lineDelay - 0.1 }}
+                            className="absolute left-0 top-0 h-4 w-4 rounded-full border-2 bg-[#FCF9F2] transition-transform duration-300 group-hover:scale-125"
+                            style={{ borderColor: step.accent }}
+                          />
+                          <motion.div
+                            aria-hidden="true"
+                            initial={{ scaleX: 0 }}
+                            whileInView={{ scaleX: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.55, ease: "easeInOut", delay: lineDelay }}
+                            style={{
+                              transformOrigin: "left",
+                              background: last
+                                ? "linear-gradient(to right, rgba(17,17,17,0.2), rgba(17,17,17,0))"
+                                : "rgba(17,17,17,0.2)",
+                            }}
+                            className={`absolute left-4 top-[7px] h-px ${last ? "right-0" : "-right-8"}`}
+                          />
+                        </div>
+                      </motion.div>
+
+                      {/* Phone: the marker beside the number */}
+                      <motion.div
+                        aria-hidden="true"
+                        initial={{ scale: 0 }}
+                        whileInView={{ scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ type: "spring", stiffness: 300, damping: 18, delay: lineDelay - 0.1 }}
+                        className="absolute left-0 top-[26px] h-[14px] w-[14px] rounded-full border-2 bg-[#FCF9F2] md:hidden"
+                        style={{ borderColor: step.accent }}
+                      />
+
+                      <p className="mb-3 mt-6 flex items-center gap-2 text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#6B6657]">
+                        <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: step.accent }} />
+                        {step.label}
+                      </p>
+                      <div className="flex items-start md:h-[188px]">
+                        <Mini />
+                      </div>
+
+                      <h3 className="mt-6 text-[24px] font-extrabold leading-[1.1] tracking-[-0.025em]">{step.title}</h3>
+                      <p className="mt-2 max-w-[240px] text-[14.5px] font-medium leading-[1.55] text-[#4A463C]">{step.desc}</p>
+                    </li>
+                  );
+                })}
               </ol>
             </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, ease: "easeOut" }}
-              className="lg:col-span-6"
-            >
-              <img
-                src="/macbook-mockup.webp"
-                alt="A website made for a business, shown on a laptop"
-                width={1134}
-                height={1075}
-                loading="lazy"
-                decoding="async"
-                className="mx-auto h-auto w-full max-w-[560px] select-none drop-shadow-[0_30px_40px_rgba(40,30,0,0.18)] lg:max-w-none"
-              />
-            </motion.div>
+            {/* The laptop stage: a few quiet shapes behind, the laptop, three small cards around it */}
+            <div className="relative">
+              <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0">
+                <Shape kind="half" color={GREEN} className="-right-6 top-[4%] h-24 w-24 rotate-[20deg] sm:h-32 sm:w-32" />
+                <Shape kind="tri" color={YELLOW} className="-bottom-4 right-[2%] h-20 w-20 rotate-[90deg] sm:h-28 sm:w-28" />
+                <Shape kind="quarter" color={BLUE} className="left-[2%] top-[2%] h-14 w-14 rotate-[200deg] sm:h-20 sm:w-20" />
+                <Shape kind="dot" color={RED} className="bottom-[8%] left-[6%] h-7 w-7 sm:h-9 sm:w-9" />
+              </div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 28, scale: 0.96 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="relative z-10"
+              >
+                {/* Soft contact shadow under the laptop for depth */}
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-x-[2%] bottom-[0%] h-[14%] rounded-[50%] bg-[#2A2210]/15 blur-3xl"
+                />
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-x-[12%] bottom-[4%] h-[7%] rounded-[50%] bg-[#2A2210]/35 blur-xl"
+                />
+                <img
+                  src="/macbook-mockup.webp"
+                  alt="A website made for a business, shown on a laptop"
+                  width={1134}
+                  height={1075}
+                  loading="lazy"
+                  decoding="async"
+                  className="relative mx-auto h-auto w-full max-w-[600px] select-none xl:max-w-none xl:scale-[1.12]"
+                />
+              </motion.div>
+
+              {[
+                { icon: EyeIcon, title: "Preview ready", sub: "Made with your details", pos: "left-0 -top-6 sm:top-[-2%] sm:-left-6", delay: 0.35 },
+                { icon: MobileIcon, title: "Mobile responsive", sub: "Phone, tablet, desktop", pos: "bottom-[-6%] right-0 sm:bottom-auto sm:top-[44%] sm:-right-2", delay: 0.5 },
+                { icon: SparkIcon, title: "Customised for your business", sub: "", pos: "bottom-[2%] left-[4%] hidden sm:flex", delay: 0.65 },
+              ].map((c) => (
+                <motion.div
+                  key={c.title}
+                  initial={{ opacity: 0, y: 14 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, ease: "easeOut", delay: c.delay }}
+                  className={`absolute z-20 flex max-w-[210px] items-center gap-2.5 rounded-2xl bg-white p-2.5 pr-3.5 shadow-[0_10px_28px_rgba(40,30,0,0.12)] ring-1 ring-black/[0.05] ${c.pos}`}
+                >
+                  <IconBadge icon={c.icon} size="sm" />
+                  <div className="min-w-0">
+                    <p className="text-[12.5px] font-bold leading-tight sm:text-[13px]">{c.title}</p>
+                    {c.sub && <p className="mt-0.5 hidden text-[11px] font-medium sm:block leading-tight text-[#6B6657]">{c.sub}</p>}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </section>
 
