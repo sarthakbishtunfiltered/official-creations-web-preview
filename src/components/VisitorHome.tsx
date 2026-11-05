@@ -11,7 +11,6 @@ import {
   InteriorIcon,
   LayoutIcon,
   MobileIcon,
-  PlusIcon,
   PencilIcon,
   PhoneIcon,
   SparkIcon,
@@ -204,7 +203,7 @@ function ShapesRight({ className }: { className: string }) {
   );
 }
 
-const sectionTitle = "text-[38px] font-extrabold leading-[1.05] tracking-[-0.035em] sm:text-[52px] lg:text-[60px]";
+const sectionTitle = "font-display text-[32px] font-extrabold leading-[1.06] tracking-[-0.032em] sm:text-[44px] lg:text-[54px]";
 const accent = "font-serif font-normal italic tracking-normal";
 const card = "rounded-[28px] bg-white shadow-[0_8px_30px_rgba(40,30,0,0.06)]";
 const blackBtn =
@@ -368,7 +367,7 @@ function BentoHead({ index }: { index: number }) {
   return (
     <div className="relative z-10">
       <IconBadge icon={f.icon} size="sm" />
-      <h3 className="mt-4 text-[26px] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-[30px]">
+      <h3 className="font-display mt-4 text-[23px] font-extrabold leading-[1.08] tracking-[-0.028em] sm:text-[27px]">
         {lead} <span className="font-serif font-normal italic tracking-normal">{tail}</span>
       </h3>
       <p className="mt-2 max-w-[300px] text-[14.5px] font-medium leading-[1.55] text-[#4A463C]">{f.desc}</p>
@@ -660,23 +659,26 @@ function FaqRow({ index, q, a, open, onToggle }: { index: number; q: string; a: 
           onClick={onToggle}
           className="flex w-full cursor-pointer items-start gap-4 py-6 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#111111] sm:gap-6 sm:py-7"
         >
-          <span className="mt-[7px] w-7 shrink-0 text-[12px] font-bold tabular-nums tracking-[0.08em] text-[#8A8473]">
+          <span className="mt-[9px] w-7 shrink-0 font-serif text-[15px] italic tabular-nums text-[#8A8473]">
             {String(index + 1).padStart(2, "0")}
           </span>
           <span className="flex-1">
             <span
               style={{ "--tint": tint } as CSSProperties}
-              className="bg-[linear-gradient(var(--tint),var(--tint))] bg-[length:0%_38%] bg-bottom-left bg-no-repeat text-[19px] font-bold leading-snug tracking-[-0.02em] transition-[background-size] duration-500 ease-out [box-decoration-break:clone] group-hover:bg-[length:100%_38%] sm:text-[23px]"
+              className="bg-[linear-gradient(var(--tint),var(--tint))] bg-[length:0%_38%] bg-bottom-left bg-no-repeat font-[Inter,sans-serif] text-[19px] font-semibold leading-[1.3] tracking-[-0.022em] transition-[background-size] duration-500 ease-out [box-decoration-break:clone] group-hover:bg-[length:100%_36%] sm:text-[24px]"
             >
               {q}
             </span>
           </span>
           <span
             className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-all duration-300 ${
-              open ? "rotate-45 border-[#111111] bg-[#111111] text-white" : "border-[#111111]/25 text-[#111111] group-hover:border-[#111111]"
+              open ? "border-[#111111] bg-[#111111] text-white" : "border-[#111111]/25 text-[#111111] group-hover:border-[#111111]"
             }`}
           >
-            <PlusIcon className="h-4 w-4" aria-hidden="true" />
+            <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
+              <path d="M3 8h10" />
+              <path d="M8 3v10" className={`origin-center transition-transform duration-300 [transform-box:fill-box] ${open ? "scale-y-0" : "scale-y-100"}`} />
+            </svg>
           </span>
         </button>
       </h3>
@@ -688,7 +690,7 @@ function FaqRow({ index, q, a, open, onToggle }: { index: number; q: string; a: 
         }`}
       >
         <div className="overflow-hidden">
-          <p className="max-w-2xl pb-7 pl-11 pr-12 text-[16px] font-medium leading-[1.7] text-[#4A463C] sm:pl-[52px]">{a}</p>
+          <p className="max-w-[640px] pb-8 pl-11 pr-12 font-[Inter,sans-serif] text-[16px] font-normal leading-[1.75] tracking-[-0.003em] text-[#4A463C] sm:pl-[52px] sm:text-[17px]">{a}</p>
         </div>
       </div>
     </li>
@@ -698,7 +700,7 @@ function FaqRow({ index, q, a, open, onToggle }: { index: number; q: string; a: 
 function FaqList() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   return (
-    <ul role="list" className="lg:col-span-8">
+    <ul role="list" className="lg:col-span-9">
       {questions.map((item, i) => (
         <FaqRow
           key={item.q}
@@ -713,20 +715,54 @@ function FaqList() {
   );
 }
 
-function FaqCollage() {
+// A small arch-window piece that sits beside the heading.
+function FaqHeadingArt() {
   return (
-    <div aria-hidden="true" className="relative mt-10 hidden h-[220px] w-full max-w-[340px] lg:block">
-      <span className="absolute left-0 top-4 h-[150px] w-[150px] rounded-full" style={{ backgroundColor: LAVENDER }} />
-      <span className="absolute left-[92px] top-0 h-[96px] w-[96px] rounded-full" style={{ backgroundColor: MINT }} />
-      <span className="absolute bottom-0 left-[40px] h-[84px] w-[84px] rounded-[26px] rotate-[14deg]" style={{ backgroundColor: ROSE }} />
-      <span className="absolute right-[34px] top-[70px] h-[110px] w-[110px] rounded-t-full" style={{ backgroundColor: SKY }} />
-      <span className="absolute left-[96px] top-[96px] -rotate-[6deg] rounded-2xl rounded-bl-sm bg-white px-4 py-3 shadow-[0_12px_26px_rgba(40,30,0,0.12)]">
-        <span className="block font-serif text-[18px] italic leading-none">Ask us anything.</span>
-        <span className="mt-2 flex gap-1">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#111111]/30" />
-          <span className="h-1.5 w-1.5 rounded-full bg-[#111111]/30" />
-          <span className="h-1.5 w-1.5 rounded-full bg-[#111111]/30" />
-        </span>
+    <div aria-hidden="true" className="group relative hidden h-[190px] w-[190px] shrink-0 md:block lg:h-[230px] lg:w-[230px]">
+      <span className="absolute inset-x-[14%] bottom-0 top-0 rounded-t-full" style={{ backgroundColor: LAVENDER }} />
+      <span className={`absolute bottom-0 left-0 h-[46%] w-[46%] rounded-full ${drift} group-hover:-translate-y-2`} style={{ backgroundColor: MINT }} />
+      <span className={`absolute right-0 top-[22%] h-[30%] w-[30%] rounded-full ${drift} group-hover:translate-y-2`} style={{ backgroundColor: ROSE }} />
+      <span className="absolute bottom-[26%] right-[8%] h-[26%] w-[26%] rounded-tl-full" style={{ backgroundColor: SKY }} />
+      <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full">
+        <path d="M28 30c8-10 18-10 26 0s18 10 26 0" fill="none" stroke="#111111" strokeWidth="1.6" strokeLinecap="round" />
+        <circle cx="50" cy="62" r="2.2" fill="#111111" />
+      </svg>
+      <span className="absolute -left-4 top-[14%] -rotate-[8deg] rounded-xl rounded-bl-sm bg-white px-3 py-1.5 font-serif text-[16px] italic shadow-[0_10px_22px_rgba(40,30,0,0.12)]">
+        psst, ask away
+      </span>
+    </div>
+  );
+}
+
+// An artistic composition for the contact prompt: stacked arches, a quarter-circle, a tiny site, a sticker.
+function ContactArt() {
+  return (
+    <div aria-hidden="true" className="group relative mx-auto h-[300px] w-full max-w-[460px] sm:h-[360px] lg:h-[400px]">
+      <span className="absolute bottom-0 left-[4%] h-[86%] w-[44%] rounded-t-full" style={{ backgroundColor: LAVENDER }} />
+      <span className={`absolute bottom-0 left-[36%] h-[64%] w-[34%] rounded-t-full ${drift} group-hover:-translate-y-3`} style={{ backgroundColor: MINT }} />
+      <span className="absolute bottom-0 right-[2%] h-[48%] w-[28%] rounded-tl-full" style={{ backgroundColor: ROSE }} />
+      <span className={`absolute right-[10%] top-[8%] h-[22%] w-[22%] rounded-full ${drift} group-hover:translate-y-3`} style={{ backgroundColor: SKY }} />
+      <span className="absolute left-[2%] top-[10%] h-[18%] w-[18%] rounded-full border border-[#111111]/70" />
+      <MiniWindow
+        url="yourbusiness.com"
+        className={`absolute bottom-[10%] left-[14%] w-[62%] -rotate-[4deg] ${drift} group-hover:-rotate-[1deg] group-hover:-translate-y-1`}
+      >
+        <div className="p-3">
+          <p className="text-[19px] font-extrabold leading-[1.02] tracking-[-0.035em]">
+            Hello,
+            <span className="block font-serif font-normal italic tracking-normal">new customers.</span>
+          </p>
+          <span className="mt-2.5 block h-1 w-4/5 rounded-full bg-[#111111]/15" />
+          <span className="mt-1.5 block h-1 w-3/5 rounded-full bg-[#111111]/15" />
+          <span className="mt-3 inline-block rounded-full bg-[#111111] px-2.5 py-1 text-[7px] font-bold uppercase tracking-wider text-white">Call now</span>
+        </div>
+      </MiniWindow>
+      <span
+        className={`absolute right-[6%] top-[38%] flex h-[92px] w-[92px] rotate-[10deg] items-center justify-center rounded-full bg-[#111111] text-center font-serif text-[19px] italic leading-[1.05] text-white shadow-[0_14px_26px_rgba(17,17,17,0.28)] ${drift} group-hover:rotate-[24deg]`}
+      >
+        say
+        <br />
+        hello
       </span>
     </div>
   );
@@ -994,7 +1030,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
               transition={{ duration: 0.7, ease: "easeOut" }}
               className="flex flex-col items-center"
             >
-              <h1 className="text-[48px] font-extrabold leading-[1.0] tracking-[-0.045em] sm:text-[68px] lg:text-[80px]">
+              <h1 className="font-display text-[40px] font-extrabold leading-[1.02] tracking-[-0.04em] sm:text-[58px] lg:text-[72px]">
                 Your website,
                 <span className={`block ${accent}`}>already made.</span>
               </h1>
@@ -1193,7 +1229,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
                         <Mini />
                       </div>
 
-                      <h3 className="mt-6 text-[24px] font-extrabold leading-[1.1] tracking-[-0.025em]">{step.title}</h3>
+                      <h3 className="font-display mt-6 text-[22px] font-extrabold leading-[1.12] tracking-[-0.022em]">{step.title}</h3>
                       <p className="mt-2 max-w-[240px] text-[14.5px] font-medium leading-[1.55] text-[#4A463C]">{step.desc}</p>
                     </li>
                   );
@@ -1272,7 +1308,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
               <ul className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                 {proof.packages.map((pack) => (
                   <li key={pack.name} className={`${card} flex flex-col p-7`}>
-                    <h3 className="text-[20px] font-extrabold">{pack.name}</h3>
+                    <h3 className="font-display text-[19px] font-extrabold">{pack.name}</h3>
                     <p className="mt-1 text-[40px] font-extrabold tracking-[-0.03em]">{pack.price}</p>
                     <ul className="mt-5 flex flex-1 flex-col gap-2.5 text-[15px] font-medium leading-[1.5] text-[#4A463C]">
                       {pack.points.map((point) => (
@@ -1345,46 +1381,60 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
         {/* Questions */}
         <section id="faq" className="scroll-mt-32 md:scroll-mt-24">
           <div className="mx-auto w-full max-w-7xl px-6 py-16 sm:px-12 lg:px-16 lg:py-24">
-            <h2 className="text-[clamp(44px,9.6vw,132px)] font-extrabold uppercase leading-[0.92] tracking-[-0.045em]">
-              You ask,
-              <br />
-              <span className="font-serif font-normal normal-case italic tracking-[-0.03em]">we answer.</span>
-            </h2>
-
-            <div className="mt-12 grid grid-cols-1 gap-10 lg:mt-16 lg:grid-cols-12 lg:gap-16">
-              <div className="lg:col-span-4">
-                <p className="max-w-xs text-[17px] font-medium leading-[1.55] text-[#4A463C]">
-                  The things people usually want to know before they say yes.
-                </p>
-                <FaqCollage />
+            {/* Asymmetric heading: the words are flush left and the small artwork floats off to the right */}
+            <div className="flex items-end justify-between gap-8">
+              <h2 className="font-display text-[clamp(38px,8.6vw,124px)] font-extrabold uppercase leading-[0.9] tracking-[-0.05em]">
+                You ask,
+                <br />
+                <span className="font-serif font-normal normal-case italic leading-[0.95] tracking-[-0.035em]">we answer.</span>
+              </h2>
+              <div className="md:mb-4 lg:mr-6">
+                <FaqHeadingArt />
               </div>
+            </div>
+
+            <div className="mt-12 grid grid-cols-1 gap-8 lg:mt-20 lg:grid-cols-12 lg:gap-16">
+              <p className="max-w-[260px] font-[Inter,sans-serif] text-[15px] font-medium leading-[1.6] text-[#6B6657] lg:col-span-3 lg:pt-7">
+                <span className="mb-3 block h-px w-8 bg-[#111111]" />
+                What people usually ask before they say yes.
+              </p>
               <FaqList />
             </div>
 
-            {/* Contact prompt: the same editorial voice, continuing straight on from the last row */}
-            <div className="mt-16 flex flex-col gap-8 border-t border-[#111111] pt-10 sm:mt-20 md:flex-row md:items-end md:justify-between">
-              <p className="text-[clamp(34px,6vw,84px)] font-extrabold leading-[0.98] tracking-[-0.04em]">
-                Still have questions?
-                <br />
-                <span className="font-serif font-normal italic tracking-[-0.02em]">Let's talk.</span>
-                <span className="ml-2 inline-block h-3 w-3 rounded-full align-middle sm:h-4 sm:w-4" style={{ backgroundColor: LAVENDER }} />
-              </p>
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
-                <button type="button" onClick={() => goToForm("sample")} className={`${blackBtn} group`}>
-                  Get in touch
-                  <ArrowRightIcon className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                </button>
-                {whatsappDigits && (
-                  <a
-                    href={`https://wa.me/${whatsappDigits}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 border-b border-[#111111]/40 pb-0.5 text-[15px] font-semibold transition-colors hover:border-[#111111]"
-                  >
-                    <PhoneIcon className="h-4 w-4" />
-                    Or message us on WhatsApp
-                  </a>
-                )}
+            {/* Contact: an editorial split, words on the left and an artwork on the right */}
+            <div className="mt-20 grid grid-cols-1 items-center gap-12 border-t border-[#111111] pt-12 sm:mt-28 lg:grid-cols-12 lg:gap-16 lg:pt-16">
+              <div className="lg:col-span-7">
+                <p className="font-serif text-[16px] italic text-[#6B6657]">Contact</p>
+                <p className="font-display mt-3 text-[clamp(34px,6.2vw,88px)] font-extrabold leading-[0.96] tracking-[-0.045em]">
+                  Still have
+                  <br />
+                  questions?
+                  <br />
+                  <span className="font-serif font-normal italic tracking-[-0.03em]">Let's talk.</span>
+                </p>
+                <p className="mt-6 max-w-md font-[Inter,sans-serif] text-[17px] leading-[1.65] text-[#4A463C]">
+                  Tell us about your business and we'll reply in plain words, with no pressure to start.
+                </p>
+                <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
+                  <button type="button" onClick={() => goToForm("sample")} className={`${blackBtn} group`}>
+                    Get in touch
+                    <ArrowRightIcon className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  </button>
+                  {whatsappDigits && (
+                    <a
+                      href={`https://wa.me/${whatsappDigits}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 border-b border-[#111111]/40 pb-0.5 text-[15px] font-semibold transition-colors hover:border-[#111111]"
+                    >
+                      <PhoneIcon className="h-4 w-4" />
+                      Or message us on WhatsApp
+                    </a>
+                  )}
+                </div>
+              </div>
+              <div className="lg:col-span-5">
+                <ContactArt />
               </div>
             </div>
           </div>
@@ -1396,7 +1446,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
             <Shape kind="half" color={GREEN} className="-left-8 bottom-0 h-32 w-32 rotate-[10deg]" />
             <Shape kind="tri" color={YELLOW} className="-right-6 top-0 h-32 w-32 rotate-[90deg]" />
             <Shape kind="dot" color={RED} className="right-[18%] bottom-8 hidden h-9 w-9 sm:block" />
-            <h2 className="relative mx-auto max-w-3xl text-[38px] font-extrabold leading-[1.05] tracking-[-0.035em] sm:text-[56px]">
+            <h2 className="font-display relative mx-auto max-w-3xl text-[32px] font-extrabold leading-[1.06] tracking-[-0.032em] sm:text-[48px]">
               See your website <span className={`${accent} text-[#FDB927]`}>before you decide.</span>
             </h2>
             <button

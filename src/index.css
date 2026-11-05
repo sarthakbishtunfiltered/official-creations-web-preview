@@ -2,6 +2,7 @@
 
 @theme {
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Bricolage Grotesque', 'Manrope', 'Inter', system-ui, sans-serif;
   --font-serif: 'Newsreader', Georgia, serif;
   --color-brand-bg: #EAE4E5;
 }
