@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import type { MouseEvent } from "react";
-import { motion } from "framer-motion";
+import type { CSSProperties, MouseEvent, ReactNode } from "react";
+import { MotionConfig, motion } from "framer-motion";
 import {
   ArrowRightIcon,
   CheckIcon,
@@ -8,6 +8,8 @@ import {
   DevicesIcon,
   EyeIcon,
   IconBadge,
+  ClinicIcon,
+  InteriorIcon,
   LayoutIcon,
   MobileIcon,
   PencilIcon,
@@ -23,9 +25,6 @@ import { LeadForm } from "./LeadForm";
 import { niches } from "../data/niches";
 
 const whatsappDigits = siteConfig.whatsappNumber.replace(/\D/g, "");
-
-// Four copies so the row loops seamlessly (the animation moves exactly half the track).
-const marqueeItems = [...niches, ...niches, ...niches, ...niches];
 
 // The tabs of the sliding navigation capsule. Only sections that are on the page get a tab.
 const navLinks = [
@@ -140,10 +139,10 @@ const GREEN = "#00C26E";
 const BLUE = "#6C63F0";
 
 const features = [
-  { icon: LayoutIcon, title: "Made for your industry", desc: "Templates built for your niche and its customers." },
-  { icon: PhoneIcon, title: "Built for enquiries", desc: "Call and WhatsApp buttons are part of every site." },
-  { icon: DevicesIcon, title: "Fully responsive", desc: "Looks right on phones, tablets and desktops." },
-  { icon: PencilIcon, title: "Easy changes", desc: "Tell us what to change and we update your site." },
+  { icon: LayoutIcon, title: "Made for your industry", accent: "industry", desc: "Templates built for your niche and its customers." },
+  { icon: PhoneIcon, title: "Built for enquiries", accent: "enquiries", desc: "Call and WhatsApp buttons are part of every site." },
+  { icon: DevicesIcon, title: "Fully responsive", accent: "responsive", desc: "Looks right on phones, tablets and desktops." },
+  { icon: PencilIcon, title: "Easy changes", accent: "changes", desc: "Tell us what to change and we update your site." },
 ];
 
 // Chalky edges: a slightly wobbly outline and a few speckles, like the shapes were drawn with chalk.
@@ -212,6 +211,436 @@ const blackBtn =
   "inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#111111] px-7 py-3.5 text-[16px] font-semibold text-white transition-colors duration-200 hover:bg-black";
 const outlineBtn =
   "inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#111111] px-7 py-3.5 text-[16px] font-semibold text-[#111111] transition-colors duration-200 hover:bg-[#111111] hover:text-white";
+
+// ---------------------------------------------------------------------------------------
+// Industries: a floating selector and an asymmetric bento grid. Clicking an industry only
+// highlights it; nothing else on the page reacts to it.
+// ---------------------------------------------------------------------------------------
+const LAVENDER = "#E6E1F8";
+const MINT = "#D9F0E4";
+const BUTTER = "#FAEFC4";
+const ROSE = "#F8DDE2";
+const PEACH = "#FBE3D3";
+const SKY = "#DAE9F6";
+const pastels = [LAVENDER, MINT, BUTTER, ROSE, PEACH, SKY];
+
+// A small, different movement for each icon on hover.
+const iconMove: Record<string, string> = {
+  "interior-designers": "group-hover:-translate-y-0.5 group-hover:-rotate-6",
+  photographers: "group-hover:scale-110 group-hover:rotate-[-8deg]",
+  salons: "group-hover:rotate-[24deg]",
+  "cloud-kitchens": "group-hover:-translate-y-1",
+  architects: "group-hover:-rotate-[14deg]",
+  "event-decorators": "group-hover:-translate-y-1.5 group-hover:rotate-6",
+  clinics: "group-hover:rotate-90",
+  "real-estate": "group-hover:-translate-y-0.5 group-hover:scale-110",
+  "driving-schools": "group-hover:rotate-[70deg]",
+  "ca-legal": "group-hover:-rotate-[12deg]",
+};
+
+// Which industries are shown as a coloured capsule and which as a floating name, and how each
+// one is nudged so the cluster feels hand-placed instead of a row of tabs.
+const composition: { pill: boolean; nudge: string }[] = [
+  { pill: true, nudge: "md:mt-6" },
+  { pill: false, nudge: "md:-mt-1" },
+  { pill: true, nudge: "md:mt-10" },
+  { pill: true, nudge: "md:mt-0" },
+  { pill: false, nudge: "md:mt-8" },
+  { pill: true, nudge: "md:-mt-2" },
+  { pill: false, nudge: "md:mt-4" },
+  { pill: true, nudge: "md:mt-9" },
+  { pill: true, nudge: "md:mt-1" },
+  { pill: false, nudge: "md:mt-6" },
+];
+
+function IndustryItem({
+  niche,
+  index,
+  selected,
+  onToggle,
+}: {
+  niche: (typeof niches)[number];
+  index: number;
+  selected: boolean;
+  onToggle: () => void;
+}) {
+  const Icon = niche.icon;
+  const { pill, nudge } = composition[index % composition.length] ?? composition[0]!;
+  const color = pastels[index % pastels.length] ?? LAVENDER;
+  const move = `transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${iconMove[niche.id] ?? ""}`;
+  const focus = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111111]";
+
+  return (
+    <motion.li
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.55, ease: "easeOut", delay: index * 0.05 }}
+      className={`shrink-0 ${nudge}`}
+    >
+      {/* A slow, tiny float; it stops for people who prefer reduced motion */}
+      <motion.div
+        animate={{ y: [0, -3, 0] }}
+        transition={{ duration: 5 + (index % 4), repeat: Infinity, ease: "easeInOut", delay: (index % 5) * 0.4 }}
+      >
+        {pill ? (
+          <button
+            type="button"
+            aria-pressed={selected}
+            onClick={onToggle}
+            className={`group flex cursor-pointer items-center gap-2.5 rounded-full py-2 pl-2 pr-5 text-[16px] font-bold tracking-[-0.01em] transition-all duration-300 hover:shadow-[0_8px_20px_rgba(40,30,0,0.10)] ${focus} ${
+              selected ? "bg-[#111111] text-white shadow-[0_10px_24px_rgba(17,17,17,0.25)]" : "text-[#111111] hover:brightness-[0.97]"
+            }`}
+            style={selected ? undefined : { backgroundColor: color }}
+          >
+            <span
+              className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors duration-300 ${
+                selected ? "bg-white/15" : "bg-white/75"
+              }`}
+            >
+              <Icon className={`h-[19px] w-[19px] ${move}`} />
+            </span>
+            {niche.label}
+          </button>
+        ) : (
+          <button
+            type="button"
+            aria-pressed={selected}
+            onClick={onToggle}
+            className={`group flex cursor-pointer items-center gap-3 rounded-full py-1.5 pr-3 ${focus}`}
+          >
+            <span
+              className={`flex h-10 w-10 items-center justify-center rounded-full ring-1 transition-colors duration-300 ${
+                selected ? "bg-[#111111] text-white ring-[#111111]" : "bg-transparent text-[#111111] ring-black/15 group-hover:bg-white"
+              }`}
+            >
+              <Icon className={`h-[20px] w-[20px] ${move}`} />
+            </span>
+            <span
+              style={{ "--hl": color } as CSSProperties}
+              className={`bg-[linear-gradient(var(--hl),var(--hl))] bg-bottom-left bg-no-repeat px-0.5 font-serif text-[27px] italic leading-tight tracking-[-0.01em] transition-[background-size] duration-500 ease-out group-hover:bg-[length:100%_50%] sm:text-[31px] ${
+                selected ? "bg-[length:100%_62%]" : "bg-[length:0%_50%]"
+              }`}
+            >
+              {niche.label}
+            </span>
+          </button>
+        )}
+      </motion.div>
+    </motion.li>
+  );
+}
+
+function IndustrySelector() {
+  const [chosen, setChosen] = useState<string | null>(null);
+  return (
+    <ul
+      role="list"
+      aria-label="Industries"
+      className="-mx-6 mt-12 grid auto-cols-max grid-flow-col grid-rows-2 gap-x-4 gap-y-4 overflow-x-auto px-6 pb-5 pt-2 [scrollbar-width:none] sm:-mx-12 sm:px-12 md:mx-0 md:mt-14 md:flex md:flex-wrap md:items-center md:justify-start md:gap-x-7 md:gap-y-5 md:overflow-visible md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden"
+    >
+      {niches.map((niche, index) => (
+        <IndustryItem
+          key={niche.id}
+          niche={niche}
+          index={index}
+          selected={chosen === niche.id}
+          onToggle={() => setChosen((now) => (now === niche.id ? null : niche.id))}
+        />
+      ))}
+    </ul>
+  );
+}
+
+// ---- bento cards ------------------------------------------------------------------------
+const bentoCard =
+  "group relative flex h-full flex-col overflow-hidden rounded-[32px] p-7 transition-all duration-500 ease-out hover:-translate-y-1.5 hover:shadow-[0_26px_50px_rgba(40,30,0,0.13)] sm:p-8";
+const drift = "transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]";
+const glossy = (a: string, b: string) => ({
+  backgroundImage: `radial-gradient(circle at 32% 28%, #ffffff 0%, ${a} 42%, ${b} 100%)`,
+});
+
+function BentoHead({ index }: { index: number }) {
+  const f = features[index]!;
+  const words = f.title.split(" ");
+  const lead = words.slice(0, -1).join(" ");
+  const tail = words[words.length - 1];
+  return (
+    <div className="relative z-10">
+      <IconBadge icon={f.icon} size="sm" />
+      <h3 className="mt-4 text-[26px] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-[30px]">
+        {lead} <span className="font-serif font-normal italic tracking-normal">{tail}</span>
+      </h3>
+      <p className="mt-2 max-w-[300px] text-[14.5px] font-medium leading-[1.55] text-[#4A463C]">{f.desc}</p>
+    </div>
+  );
+}
+
+function MiniWindow({ className = "", children, url = "yourbusiness.com" }: { className?: string; children: ReactNode; url?: string }) {
+  return (
+    <div
+      aria-hidden="true"
+      className={`overflow-hidden rounded-xl bg-white shadow-[0_14px_34px_rgba(40,30,0,0.14)] ring-1 ring-black/[0.05] ${className}`}
+    >
+      <div className="flex items-center gap-1 border-b border-[#EFEBDF] px-2.5 py-1.5">
+        <span className="h-1.5 w-1.5 rounded-full bg-[#FF5A3C]" />
+        <span className="h-1.5 w-1.5 rounded-full bg-[#FDB927]" />
+        <span className="h-1.5 w-1.5 rounded-full bg-[#00C26E]" />
+        <span className="ml-1.5 truncate rounded-full bg-[#F3EFE4] px-2 py-[1px] text-[7px] font-semibold text-[#8A8473]">{url}</span>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function BentoIndustry() {
+  return (
+    <article className={bentoCard} style={{ backgroundColor: LAVENDER }}>
+      <BentoHead index={0} />
+      <div className="relative mt-6 min-h-[250px] flex-1">
+        {/* a second industry peeking out behind, so it reads as "one template per niche" */}
+        <MiniWindow
+          url="yourclinic.com"
+          className={`absolute bottom-[-30px] left-[1%] w-[54%] -rotate-[5deg] ${drift} group-hover:-translate-x-2 group-hover:-rotate-[9deg]`}
+        >
+          <div className="p-2.5">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="h-2 w-8 rounded-full bg-[#111111]/70" />
+              <span className="h-2 w-4 rounded-full bg-[#00C26E]/70" />
+            </div>
+            <div className="flex h-[74px] items-center justify-center rounded-lg" style={{ backgroundColor: MINT }}>
+              <ClinicIcon className="h-9 w-9 text-[#111111]" />
+            </div>
+            <span className="mt-2 block h-1.5 w-3/4 rounded-full bg-[#111111]/15" />
+          </div>
+        </MiniWindow>
+
+        <MiniWindow
+          className={`absolute bottom-[-44px] right-0 w-[86%] ${drift} group-hover:-translate-y-2.5 group-hover:rotate-[1.2deg]`}
+        >
+          <div className="p-3">
+            <div className="mb-3 flex items-center justify-between">
+              <span className="font-serif text-[12px] italic">Sunrise Interiors</span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-1 w-4 rounded-full bg-[#111111]/25" />
+                <span className="h-1 w-4 rounded-full bg-[#111111]/25" />
+                <span className="rounded-full bg-[#111111] px-2 py-[3px] text-[6.5px] font-bold uppercase tracking-wider text-white">Enquire</span>
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <p className="text-[15px] font-extrabold leading-[1.05] tracking-[-0.03em]">
+                  Spaces designed
+                  <span className="block font-serif font-normal italic tracking-normal">around you.</span>
+                </p>
+                <span className="mt-2 block h-1 w-full rounded-full bg-[#111111]/15" />
+                <span className="mt-1 block h-1 w-4/5 rounded-full bg-[#111111]/15" />
+                <span className="mt-2.5 inline-block rounded-full bg-[#6C63F0] px-2.5 py-1 text-[6.5px] font-bold uppercase tracking-wider text-white">View projects</span>
+              </div>
+              <div className="relative flex h-[128px] w-[34%] shrink-0 items-end justify-center overflow-hidden rounded-lg" style={{ backgroundColor: BUTTER }}>
+                <span className="absolute -right-3 -top-3 h-10 w-10 rounded-full" style={{ backgroundColor: ROSE }} />
+                <InteriorIcon className="mb-2 h-12 w-12 text-[#111111]" />
+              </div>
+            </div>
+            <div className="mt-3 grid grid-cols-3 gap-1.5">
+              {[LAVENDER, MINT, ROSE].map((c) => (
+                <span key={c} className="h-12 rounded-md" style={{ backgroundColor: c }} />
+              ))}
+            </div>
+          </div>
+        </MiniWindow>
+
+        <span
+          aria-hidden="true"
+          className={`absolute right-[6%] top-0 flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[12px] font-bold shadow-[0_8px_20px_rgba(40,30,0,0.12)] ${drift} group-hover:-translate-y-2 group-hover:-rotate-3`}
+        >
+          <InteriorIcon className="h-4 w-4" />
+          Interior designers
+        </span>
+      </div>
+    </article>
+  );
+}
+
+function BentoEnquiries() {
+  return (
+    <article className={bentoCard} style={{ backgroundColor: MINT }}>
+      <BentoHead index={1} />
+      <div className="relative mt-6 min-h-[250px] flex-1">
+        <span
+          aria-hidden="true"
+          className={`absolute -left-3 bottom-4 h-14 w-14 rounded-full shadow-[0_12px_20px_rgba(60,120,90,0.25)] ${drift} group-hover:-translate-y-2 group-hover:translate-x-1`}
+          style={glossy("#A9E0C4", "#4FB583")}
+        />
+        <div
+          aria-hidden="true"
+          className={`absolute bottom-[-40px] right-[2%] w-[78%] rounded-[26px] bg-white p-3 shadow-[0_16px_38px_rgba(40,30,0,0.14)] ring-1 ring-black/[0.04] ${drift} group-hover:-translate-y-1.5`}
+        >
+          <div className="mb-3 flex items-center gap-2 border-b border-[#EFEBDF] pb-2.5">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#111111] text-white">
+              <PhoneIcon className="h-3.5 w-3.5" />
+            </span>
+            <div>
+              <p className="text-[11px] font-bold leading-none">Sunrise Interiors</p>
+              <p className="mt-1 text-[8.5px] font-medium leading-none text-[#8A8473]">Typically replies quickly</p>
+            </div>
+          </div>
+          <p className="max-w-[88%] rounded-2xl rounded-bl-md bg-[#F3EFE4] px-3 py-2 text-[10.5px] font-medium leading-snug">
+            Hi! Can I get a quote for a 2BHK?
+          </p>
+          <p className={`ml-auto mt-2 max-w-[82%] rounded-2xl rounded-br-md px-3 py-2 text-[10.5px] font-medium leading-snug ${drift} group-hover:translate-x-1`} style={{ backgroundColor: MINT }}>
+            Of course. Sending our packages now.
+          </p>
+          <div className="mt-3 flex items-center justify-between rounded-full bg-[#111111] px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.14em] text-white">
+            Call now
+            <ArrowRightIcon className="h-3 w-3" />
+          </div>
+        </div>
+        <div
+          aria-hidden="true"
+          className={`absolute left-[4%] top-0 flex items-center gap-2 rounded-2xl bg-[#111111] px-3 py-2 text-white shadow-[0_14px_30px_rgba(17,17,17,0.3)] ${drift} group-hover:-translate-y-2.5 group-hover:-rotate-2`}
+        >
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inset-0 rounded-full bg-[#00C26E]" />
+          </span>
+          <div>
+            <p className="text-[11px] font-bold leading-none">New enquiry</p>
+            <p className="mt-1 text-[9px] font-medium leading-none text-white/60">Just now</p>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function BentoChanges() {
+  return (
+    <article className={bentoCard} style={{ backgroundColor: BUTTER }}>
+      <BentoHead index={3} />
+      <div className="relative mt-6 min-h-[170px] flex-1">
+        <div
+          aria-hidden="true"
+          className={`absolute left-0 top-0 flex items-center gap-2 rounded-full bg-white px-3 py-1.5 shadow-[0_10px_22px_rgba(40,30,0,0.12)] ${drift} group-hover:-translate-y-1.5`}
+        >
+          <span className="font-serif text-[13px] italic">Aa</span>
+          <span className="text-[11px] font-extrabold">B</span>
+          <span className="h-3 w-px bg-black/15" />
+          {[ROSE, LAVENDER, MINT].map((c, i) => (
+            <span
+              key={c}
+              className={`h-3.5 w-3.5 rounded-full ring-1 ring-black/10 ${drift} ${i === 1 ? "group-hover:scale-125" : ""}`}
+              style={{ backgroundColor: c }}
+            />
+          ))}
+        </div>
+        <div
+          aria-hidden="true"
+          className={`absolute inset-x-0 bottom-[-34px] top-[52px] rounded-2xl bg-white p-4 shadow-[0_14px_32px_rgba(40,30,0,0.12)] ring-1 ring-black/[0.04] ${drift} group-hover:-translate-y-1`}
+        >
+          <p className="text-[20px] font-extrabold leading-[1.1] tracking-[-0.03em]">
+            Your studio,{" "}
+            <span className="relative inline-block">
+              <span className="absolute -inset-x-1 inset-y-0 rounded-[3px]" style={{ backgroundColor: LAVENDER }} />
+              <span className="relative font-serif font-normal italic tracking-normal">your way</span>
+              <span className="absolute -left-1.5 -top-1 h-1.5 w-1.5 rounded-[1px] bg-[#6C63F0]" />
+              <span className="absolute -bottom-1 -right-1.5 h-1.5 w-1.5 rounded-[1px] bg-[#6C63F0]" />
+            </span>
+            <span className="ml-0.5 inline-block h-5 w-px translate-y-1 bg-[#111111]" />
+          </p>
+          <span className="mt-3 block h-1.5 w-full rounded-full bg-[#111111]/12" />
+          <span className="mt-1.5 block h-1.5 w-3/4 rounded-full bg-[#111111]/12" />
+        </div>
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          className={`absolute bottom-[8px] right-[14%] h-7 w-7 drop-shadow-md ${drift} group-hover:-translate-x-10 group-hover:-translate-y-8`}
+        >
+          <path d="M5 3l14 7-6 2-2 6z" fill="#111111" stroke="#fff" strokeWidth="1.4" strokeLinejoin="round" />
+        </svg>
+      </div>
+    </article>
+  );
+}
+
+function SiteSkin({ compact = false }: { compact?: boolean }) {
+  return (
+    <div className={compact ? "p-1.5" : "p-2.5"}>
+      <div className="mb-1.5 flex items-center justify-between">
+        <span className="h-1.5 w-6 rounded-full bg-[#111111]/70" />
+        <span className="h-1.5 w-3 rounded-full bg-[#111111]/25" />
+      </div>
+      <p className={`${compact ? "text-[8px]" : "text-[13px]"} font-extrabold leading-[1.05] tracking-[-0.03em]`}>
+        Spaces designed
+        <span className="block font-serif font-normal italic tracking-normal">around you.</span>
+      </p>
+      <span className={`block rounded-md ${compact ? "mt-1.5 h-9" : "mt-2 h-[96px]"}`} style={{ backgroundColor: BUTTER }} />
+      <div className="mt-1.5 grid grid-cols-3 gap-1">
+        {[LAVENDER, MINT, ROSE].map((c) => (
+          <span key={c} className={`rounded ${compact ? "h-3" : "h-8"}`} style={{ backgroundColor: c }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function BentoResponsive() {
+  return (
+    <article className={`${bentoCard} md:flex-row md:items-stretch md:gap-4`} style={{ backgroundColor: ROSE }}>
+      <div className="md:w-[40%] md:shrink-0">
+        <BentoHead index={2} />
+      </div>
+      <div className="relative mt-6 min-h-[250px] flex-1 md:mt-0">
+        <span
+          aria-hidden="true"
+          className={`absolute right-[2%] top-[-6px] h-12 w-12 rounded-full shadow-[0_12px_20px_rgba(150,70,90,0.22)] ${drift} group-hover:translate-y-3`}
+          style={glossy("#F5B8C4", "#D9788D")}
+        />
+        {/* desktop */}
+        <MiniWindow
+          className={`absolute right-[3%] top-[14px] w-[76%] ${drift} group-hover:translate-x-1.5 group-hover:-translate-y-1`}
+        >
+          <SiteSkin />
+        </MiniWindow>
+        {/* tablet */}
+        <div
+          aria-hidden="true"
+          className={`absolute bottom-[-10px] left-[4%] w-[30%] overflow-hidden rounded-[14px] border-[3px] border-[#111111] bg-white shadow-[0_14px_30px_rgba(40,30,0,0.2)] ${drift} group-hover:-translate-x-1.5 group-hover:-rotate-3`}
+        >
+          <SiteSkin compact />
+        </div>
+        {/* phone */}
+        <div
+          aria-hidden="true"
+          className={`absolute bottom-[-18px] left-[31%] w-[18%] overflow-hidden rounded-[12px] border-[3px] border-[#111111] bg-white shadow-[0_14px_30px_rgba(40,30,0,0.24)] ${drift} group-hover:translate-x-1.5 group-hover:-translate-y-2 group-hover:rotate-3`}
+        >
+          <SiteSkin compact />
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function BentoGrid() {
+  const cell = (cls: string, i: number, child: ReactNode) => (
+    <motion.div
+      initial={{ opacity: 0, y: 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.7, ease: "easeOut", delay: i * 0.12 }}
+      className={cls}
+    >
+      {child}
+    </motion.div>
+  );
+  return (
+    <ul className="mt-14 grid grid-cols-1 gap-5 md:grid-cols-6 lg:grid-cols-12 lg:gap-6" role="list">
+      {cell("md:col-span-6 lg:col-span-7 lg:min-h-[430px]", 0, <BentoIndustry />)}
+      {cell("md:col-span-3 lg:col-span-5 lg:min-h-[430px]", 1, <BentoEnquiries />)}
+      {cell("md:col-span-3 lg:col-span-4 lg:min-h-[320px]", 2, <BentoChanges />)}
+      {cell("md:col-span-6 lg:col-span-8 lg:min-h-[320px]", 3, <BentoResponsive />)}
+    </ul>
+  );
+}
 
 // ---------------------------------------------------------------------------------------
 // The three miniature interfaces of the "details to live website" journey. Pure decoration
@@ -775,55 +1204,21 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
 
         {/* Which businesses it is for */}
         <section id="niches" className="scroll-mt-32 md:scroll-mt-24">
-          <div className="mx-auto w-full max-w-7xl px-6 pt-16 sm:px-12 sm:pt-20 lg:px-16 lg:pt-24">
-            <h2 className={`${sectionTitle} max-w-3xl`}>
-              A website for <span className={accent}>every industry.</span>
-            </h2>
-            <p className="mt-5 max-w-xl text-[18px] font-medium leading-[1.5] text-[#4A463C]">
-              Pick your industry in the form and we'll build a website made for it.
-            </p>
+          {/* Reduced motion: no floating, tilting or sliding; everything simply sits still. */}
+          <MotionConfig reducedMotion="user">
+            <style>{`@media (prefers-reduced-motion: reduce){.oc-industries *{transition:none!important;animation:none!important;translate:none!important;rotate:none!important;scale:none!important}}`}</style>
+            <div className="oc-industries mx-auto w-full max-w-7xl px-6 pb-16 pt-16 sm:px-12 sm:pb-20 sm:pt-20 lg:px-16 lg:pb-24 lg:pt-24">
+              <h2 className={`${sectionTitle} max-w-3xl`}>
+                A website for <span className={accent}>every industry.</span>
+              </h2>
+              <p className="mt-5 max-w-xl text-[18px] font-medium leading-[1.5] text-[#4A463C]">
+                Pick your industry in the form and we'll build a website made for it.
+              </p>
 
-          </div>
-
-          {/* Screen readers get the list once; the moving line below is decoration */}
-          <ul className="sr-only">
-            {niches.map((niche) => (
-              <li key={niche.id}>{niche.label}</li>
-            ))}
-          </ul>
-
-          <div
-            aria-hidden="true"
-            className="my-2 w-full overflow-hidden"
-            style={{
-              maskImage: "linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%)",
-              WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%)",
-            }}
-          >
-            <div className="animate-marquee flex items-center py-3">
-              {marqueeItems.map((niche, idx) => {
-                const Icon = niche.icon;
-                return (
-                  <div key={`${niche.id}-${idx}`} className="flex shrink-0 cursor-default select-none items-center gap-3.5 pr-20">
-                    <IconBadge icon={Icon} size="md" />
-                    <span className="whitespace-nowrap text-[19px] font-bold tracking-[-0.01em] sm:text-[22px]">{niche.label}</span>
-                  </div>
-                );
-              })}
+              <IndustrySelector />
+              <BentoGrid />
             </div>
-          </div>
-
-          <div className="mx-auto w-full max-w-7xl px-6 pb-16 sm:px-12 sm:pb-20 lg:px-16 lg:pb-24">
-            <ul className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {features.map((f) => (
-                <li key={f.title} className="rounded-[24px] bg-[#EDEAE2] p-6">
-                  <IconBadge icon={f.icon} size="md" className="mb-5" />
-                  <h3 className="text-[17px] font-extrabold tracking-[-0.01em]">{f.title}</h3>
-                  <p className="mt-2 text-[14px] font-medium leading-[1.55] text-[#4A463C]">{f.desc}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
+          </MotionConfig>
         </section>
 
         {/* What clients say */}
