@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { CSSProperties, MouseEvent, ReactNode } from "react";
 import { MotionConfig, motion } from "framer-motion";
+import { BookCallModal } from "./BookCallModal";
 import {
   ArrowRightIcon,
   CheckIcon,
@@ -64,7 +65,7 @@ function NavCapsule({
               e.preventDefault();
               onPick(link.id);
             }}
-            className={`relative shrink-0 whitespace-nowrap rounded-full px-3.5 py-2 text-[14px] font-semibold transition-colors duration-200 sm:px-4 ${
+            className={`relative shrink-0 whitespace-nowrap rounded-full px-2.5 py-2 text-[13px] font-semibold transition-colors duration-200 max-md:flex-1 max-md:text-center sm:px-4 sm:text-[14px] ${
               on ? "text-white" : "text-[#4A463C] hover:text-[#111111]"
             }`}
           >
@@ -275,7 +276,7 @@ function IndustryItem({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.55, ease: "easeOut", delay: index * 0.05 }}
-      className={`shrink-0 ${nudge}`}
+      className={`shrink-0 snap-start max-md:whitespace-nowrap ${nudge}`}
     >
       {/* A slow, tiny float; it stops for people who prefer reduced motion */}
       <motion.div
@@ -336,7 +337,7 @@ function IndustrySelector() {
     <ul
       role="list"
       aria-label="Industries"
-      className="-mx-6 mt-12 grid auto-cols-max grid-flow-col grid-rows-2 gap-x-4 gap-y-4 overflow-x-auto px-6 pb-5 pt-2 [scrollbar-width:none] sm:-mx-12 sm:px-12 md:mx-0 md:mt-14 md:flex md:flex-wrap md:items-center md:justify-start md:gap-x-7 md:gap-y-5 md:overflow-visible md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden"
+      className="-mx-6 mt-10 flex snap-x snap-proximity scroll-px-6 items-center gap-3 overflow-x-auto px-6 pb-4 pt-3 [scrollbar-width:none] md:snap-none sm:-mx-12 sm:px-12 md:mx-0 md:mt-14 md:flex md:flex-wrap md:items-center md:justify-start md:gap-x-7 md:gap-y-5 md:overflow-visible md:px-0 md:pb-0 md:pt-2 [&::-webkit-scrollbar]:hidden"
     >
       {niches.map((niche, index) => (
         <IndustryItem
@@ -915,6 +916,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
 
   // Which tab is lit: the last section whose top has passed just under the header.
   const [activeTab, setActiveTab] = useState("home");
+  const [bookingOpen, setBookingOpen] = useState(false);
   useEffect(() => {
     let frame = 0;
     function update() {
@@ -970,6 +972,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
   return (
     <div className="flex min-h-screen flex-col overflow-x-clip bg-[#FCF9F2] pb-20 font-[Manrope,Inter,sans-serif] text-[#111111] md:pb-0">
       <ChalkFilter />
+      <BookCallModal open={bookingOpen} onClose={() => setBookingOpen(false)} />
 
       <header className="sticky top-0 z-40 bg-[#FCF9F2]/90 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-6 py-4 sm:px-12 lg:px-16">
@@ -986,9 +989,13 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
                 Sign out
               </button>
             ) : (
-              <a href="/login" className={quietLink}>
-                Team login
-              </a>
+              <button
+                type="button"
+                onClick={() => setBookingOpen(true)}
+                className="cursor-pointer rounded-xl border border-[#111111] px-4 py-2 text-[14px] font-semibold text-[#111111] transition-colors duration-200 hover:bg-[#111111] hover:text-white sm:px-5 sm:py-2.5 sm:text-[15px]"
+              >
+                Book a call
+              </button>
             )}
             {whatsappDigits && (
               <a
@@ -1013,7 +1020,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
 
         {/* On phones the same capsule sits in its own row and scrolls sideways */}
         <div className="overflow-x-auto px-4 pb-3 md:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <NavCapsule active={activeTab} onPick={goToTab} name="narrow" className="flex w-max" />
+          <NavCapsule active={activeTab} onPick={goToTab} name="narrow" className="flex w-full min-w-max justify-between" />
         </div>
       </header>
 
