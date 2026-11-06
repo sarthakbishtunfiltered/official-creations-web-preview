@@ -31,6 +31,9 @@ function prettyDate(iso: string): string {
 }
 
 const bookingUrl = siteConfig.bookingUrl.trim();
+// Google only lets its full appointment-schedule address sit inside another website. The short
+// calendar.app.google links refuse to load in a frame (the box stays blank), so those open in a new tab.
+const canEmbed = /^https:\/\/calendar\.google\.com\/calendar\/appointments\/schedules\//.test(bookingUrl);
 
 type Tab = "pick" | "suggest";
 
@@ -193,7 +196,7 @@ export function BookCallModal({ open, onClose }: { open: boolean; onClose: () =>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-8 pt-5 sm:px-8">
           {tab === "pick" ? (
-            bookingUrl ? (
+            bookingUrl && canEmbed ? (
               <div>
                 <iframe
                   title="Pick a time on Google Calendar"
@@ -206,6 +209,22 @@ export function BookCallModal({ open, onClose }: { open: boolean; onClose: () =>
                     Open in a new tab
                   </a>
                 </p>
+              </div>
+            ) : bookingUrl ? (
+              <div className="rounded-2xl bg-[#EDEAE2] p-6 text-center">
+                <p className="text-[18px] font-extrabold tracking-[-0.02em]">See open times</p>
+                <p className="mx-auto mt-2 max-w-sm text-[14.5px] font-medium leading-[1.6] text-[#4A463C]">
+                  Pick a slot on our Google Calendar page. Once you confirm, a Google Meet link is emailed to you.
+                </p>
+                <a
+                  href={bookingUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-5 inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#111111] px-6 py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-black"
+                >
+                  Open booking page
+                  <ArrowRightIcon className="h-4 w-4" />
+                </a>
               </div>
             ) : (
               <p className="rounded-2xl bg-[#EDEAE2] p-4 text-[14.5px] font-medium leading-[1.55] text-[#4A463C]">
