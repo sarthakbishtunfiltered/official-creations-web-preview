@@ -1423,7 +1423,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
                   Tell us about your business and we'll reply in plain words, with no pressure to start.
                 </p>
                 <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
-                  <button type="button" onClick={() => goToForm("sample")} className={`${blackBtn} group`}>
+                  <button type="button" onClick={() => setBookingOpen(true)} className={`${blackBtn} group`}>
                     Get in touch
                     <ArrowRightIcon className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                   </button>
