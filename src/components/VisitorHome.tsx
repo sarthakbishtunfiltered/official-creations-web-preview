@@ -258,11 +258,14 @@ function IndustryItem({
   index,
   selected,
   onToggle,
+  copy = false,
 }: {
   niche: (typeof niches)[number];
   index: number;
   selected: boolean;
   onToggle: () => void;
+  // The repeated half of the phone marquee: hidden from screen readers and the tab order.
+  copy?: boolean;
 }) {
   const Icon = niche.icon;
   const { pill, nudge } = composition[index % composition.length] ?? composition[0]!;
@@ -276,7 +279,8 @@ function IndustryItem({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.55, ease: "easeOut", delay: index * 0.05 }}
-      className={`shrink-0 snap-start max-md:whitespace-nowrap ${nudge}`}
+      aria-hidden={copy ? true : undefined}
+      className={`shrink-0 max-md:mr-3 max-md:whitespace-nowrap ${copy ? "motion-reduce:hidden" : ""} ${nudge}`}
     >
       {/* A slow, tiny float; it stops for people who prefer reduced motion */}
       <motion.div
@@ -286,6 +290,7 @@ function IndustryItem({
         {pill ? (
           <button
             type="button"
+            tabIndex={copy ? -1 : undefined}
             aria-pressed={selected}
             onClick={onToggle}
             className={`group flex cursor-pointer items-center gap-2.5 rounded-full py-2 pl-2 pr-5 text-[16px] font-bold tracking-[-0.01em] transition-all duration-300 hover:shadow-[0_8px_20px_rgba(40,30,0,0.10)] ${focus} ${
@@ -305,6 +310,7 @@ function IndustryItem({
         ) : (
           <button
             type="button"
+            tabIndex={copy ? -1 : undefined}
             aria-pressed={selected}
             onClick={onToggle}
             className={`group flex cursor-pointer items-center gap-3 rounded-full py-1.5 pr-3 ${focus}`}
@@ -333,22 +339,41 @@ function IndustryItem({
 
 function IndustrySelector() {
   const [chosen, setChosen] = useState<string | null>(null);
+  const items = (copy: boolean) =>
+    niches.map((niche, index) => (
+      <IndustryItem
+        key={`${copy ? "b" : "a"}-${niche.id}`}
+        niche={niche}
+        index={index}
+        copy={copy}
+        selected={chosen === niche.id}
+        onToggle={() => setChosen((now) => (now === niche.id ? null : niche.id))}
+      />
+    ));
   return (
-    <ul
-      role="list"
-      aria-label="Industries"
-      className="-mx-6 mt-10 flex snap-x snap-proximity scroll-px-6 items-center gap-3 overflow-x-auto px-6 pb-4 pt-3 [scrollbar-width:none] md:snap-none sm:-mx-12 sm:px-12 md:mx-0 md:mt-14 md:flex md:flex-wrap md:items-center md:justify-start md:gap-x-7 md:gap-y-5 md:overflow-visible md:px-0 md:pb-0 md:pt-2 [&::-webkit-scrollbar]:hidden"
-    >
-      {niches.map((niche, index) => (
-        <IndustryItem
-          key={niche.id}
-          niche={niche}
-          index={index}
-          selected={chosen === niche.id}
-          onToggle={() => setChosen((now) => (now === niche.id ? null : niche.id))}
-        />
-      ))}
-    </ul>
+    <>
+      {/* Phones and small tablets: one endless moving line. It pauses while touched or hovered,
+          and people who prefer reduced motion get a plain swipeable row instead. */}
+      <div className="-mx-6 mt-10 overflow-hidden pb-4 pt-3 [mask-image:linear-gradient(to_right,transparent,#000_5%,#000_95%,transparent)] motion-reduce:overflow-x-auto motion-reduce:[mask-image:none] sm:-mx-12 md:hidden">
+        <ul
+          role="list"
+          aria-label="Industries"
+          style={{ animationDuration: "64s" }}
+          className="animate-marquee [&:active]:[animation-play-state:paused]"
+        >
+          {items(false)}
+          {items(true)}
+        </ul>
+      </div>
+      {/* Larger screens: the floating cluster */}
+      <ul
+        role="list"
+        aria-label="Industries"
+        className="mt-14 hidden flex-wrap items-center justify-start gap-x-7 gap-y-5 pt-2 md:flex"
+      >
+        {items(false)}
+      </ul>
+    </>
   );
 }
 
@@ -992,7 +1017,7 @@ export function VisitorHome({ access }: { access: Exclude<TeamAccess, { status: 
               <button
                 type="button"
                 onClick={() => setBookingOpen(true)}
-                className="cursor-pointer rounded-xl border border-[#111111] px-4 py-2 text-[14px] font-semibold text-[#111111] transition-colors duration-200 hover:bg-[#111111] hover:text-white sm:px-5 sm:py-2.5 sm:text-[15px]"
+                className="cursor-pointer rounded-xl border border-[#35332E] bg-[#35332E] px-4 py-2 text-[14px] font-semibold text-white transition-colors duration-200 active:bg-[#4A463C] sm:border-[#111111] sm:bg-transparent sm:px-5 sm:py-2.5 sm:text-[15px] sm:text-[#111111] sm:hover:bg-[#111111] sm:hover:text-white sm:active:bg-[#111111]"
               >
                 Book a call
               </button>
