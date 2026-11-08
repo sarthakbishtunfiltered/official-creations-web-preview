@@ -268,6 +268,14 @@ const nicheExtras: Record<NicheId, FieldDef[]> = {
       ],
     },
     { key: "reelLink", label: "Video or reel link", type: "url" },
+    {
+      key: "heroFocus",
+      label: "Top photo: which part to show",
+      type: "select",
+      options: ["Top", "Upper middle", "Middle", "Lower middle", "Bottom"],
+      help: "The top photo is cropped to a wide banner. Pick where the people are in the photo, so they stay in view.",
+    },
+    { key: "heroVideo", label: "Top-of-page background video (optional)", type: "url", placeholder: "YouTube, Vimeo or a direct .mp4 link" },
   ],
   salons: [
     { key: "serviceCategories", label: "Service categories", type: "text", placeholder: "e.g. Hair, Skin, Bridal" },
