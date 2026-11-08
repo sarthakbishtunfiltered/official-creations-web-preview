@@ -3,6 +3,7 @@ import type { Design, NicheId } from "../data/niches";
 import type { SiteData } from "../lib/siteData";
 import { ClinicSimple } from "./clinics/Simple";
 import { PhotographerSimple } from "./photographers/Simple";
+import { SalonSimple } from "./salons/Simple";
 import { InteriorSimple } from "./interior-designers/Simple";
 
 export type TemplateComponent = ComponentType<{ data: SiteData }>;
@@ -13,4 +14,5 @@ export const templates: Partial<Record<NicheId, Partial<Record<Design, TemplateC
   "interior-designers": { simple: InteriorSimple },
   clinics: { simple: ClinicSimple },
   photographers: { simple: PhotographerSimple },
+  salons: { simple: SalonSimple },
 };

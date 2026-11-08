@@ -158,6 +158,7 @@ const familyBlocks: Record<Family, Block[]> = {
             { key: "description", label: "What it involves (optional)", type: "text" },
             { key: "price", label: "Price or fee", type: "text" },
             { key: "duration", label: "Duration (optional)", type: "text" },
+            { key: "category", label: "Category (optional, e.g. Hair)", type: "text" },
           ],
         },
         {
@@ -278,9 +279,37 @@ const nicheExtras: Record<NicheId, FieldDef[]> = {
     { key: "heroVideo", label: "Top-of-page background video (optional)", type: "url", placeholder: "YouTube, Vimeo or a direct .mp4 link" },
   ],
   salons: [
-    { key: "serviceCategories", label: "Service categories", type: "text", placeholder: "e.g. Hair, Skin, Bridal" },
-    { key: "bridalPackages", label: "Bridal packages", type: "textarea" },
+    {
+      key: "serviceCategories",
+      label: "Service categories",
+      type: "text",
+      placeholder: "e.g. Hair, Skin, Bridal",
+      help: "Used as filter tabs. Give each service the same category name so it shows under the right tab.",
+    },
+    {
+      key: "bridalPackages",
+      label: "Bridal packages",
+      type: "textarea",
+      placeholder: "Royal Bride | ₹25,000 | HD makeup, hairstyle, draping, pre-bridal facial",
+      help: "One package per line. Write: Name | Price | What is included.",
+    },
     { key: "homeVisit", label: "Home visits available", type: "toggle" },
+    { key: "ladiesOnly", label: "Ladies-only space", type: "toggle" },
+    { key: "productBrands", label: "Brands we use", type: "text", placeholder: "e.g. L'Oréal, Lakmé, Wella, O3+" },
+    { key: "offerTitle", label: "Current offer: title", type: "text", placeholder: "e.g. Festive glow offer" },
+    { key: "offerText", label: "Current offer: details", type: "text", placeholder: "e.g. 20% off facials until Diwali" },
+    {
+      key: "beforeAfter",
+      label: "Before and after",
+      type: "list",
+      max: 4,
+      itemName: "comparison",
+      fields: [
+        { key: "title", label: "Title (e.g. Hair colour)", type: "text" },
+        { key: "before", label: "Before image", type: "image" },
+        { key: "after", label: "After image", type: "image" },
+      ],
+    },
   ],
   "cloud-kitchens": [{ key: "cuisineType", label: "Cuisine type", type: "text", placeholder: "e.g. Gujarati thali" }],
   architects: [
@@ -468,6 +497,7 @@ function moreBlocks(id: NicheId | ""): Block[] {
       fields: [
         { key: "name", label: "Client name", type: "text" },
         { key: "quote", label: "What they said", type: "text" },
+        ...(niche?.id === "salons" ? [{ key: "photo", label: "Client photo (optional)", type: "image" as const, maxDim: 800 }] : []),
       ],
     });
     if (niche?.family === "portfolio") {
